@@ -28,6 +28,9 @@
       --warn-border: #e8d5a0;
       --radius: 10px;
       --radius-lg: 14px;
+      --info: #1a3d6b;
+      --info-light: #eef3fa;
+      --info-border: #b8cce4;
     }
 
     body {
@@ -99,6 +102,7 @@
       font-family: 'Noto Sans KR', sans-serif; font-size: 13px; color: var(--danger);
       cursor: pointer; transition: background 0.12s; white-space: nowrap;
     }
+    .btn-edit:hover { background: #dde8f5; }
     .btn-leave-all:hover { background: #f9e0e0; }
     .btn-leave-all.hidden { display: none; }
 
@@ -276,6 +280,7 @@
         <span><strong id="display-name"></strong>&nbsp;·&nbsp;<span id="display-org"></span></span>
       </div>
       <div class="toolbar-right">
+        <button class="btn-edit" id="btn-edit">✎ 정보 수정</button>  <!-- 추가 -->
         <button class="btn-leave-all hidden" id="btn-leave-all">조 나가기</button>
         <button class="refresh-btn" id="btn-refresh">
           <span class="refresh-icon" id="refresh-icon">↻</span> 새로고침
@@ -479,6 +484,18 @@
       pendingLeaveKey = null;
     }
   });
+  // ── 정보 수정 버튼 ──
+document.getElementById('btn-edit').addEventListener('click', () => {
+  clearUserLocally();
+  currentUser = null;
+  inpName.value = '';
+  inpOrg.value = '';
+  btnNext.disabled = true;
+  document.getElementById('page2').classList.remove('active');
+  document.getElementById('page1').classList.add('active');
+  setStatus('조를 선택해 주세요.', '');
+});
+  
 
   // ── 실시간 리스너 ──
   onValue(dbRef, (snap) => {
