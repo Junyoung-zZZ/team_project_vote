@@ -268,14 +268,7 @@
 
   <!-- Page 2 -->
   <div id="page2" class="page">
-    <!-- 재접속 감지 배너 -->
-    <div class="restore-banner" id="restore-banner">
-      <span>이전에 <strong id="restore-info"></strong>으로 신청한 기록이 있습니다. 불러올까요?</span>
-      <div class="restore-banner-btns">
-        <button class="btn-restore yes" id="btn-restore-yes">불러오기</button>
-        <button class="btn-restore no" id="btn-restore-no">새로 시작</button>
-      </div>
-    </div>
+
 
     <div class="toolbar">
       <div class="user-chip">
@@ -528,45 +521,22 @@
     banner.classList.add('show');
   }
 
-  document.getElementById('btn-restore-yes').addEventListener('click', () => {
-    document.getElementById('restore-banner').classList.remove('show');
-    setStatus(`${currentUser.name}님으로 자동 복원되었습니다.`, 'ok');
-  });
-
-  document.getElementById('btn-restore-no').addEventListener('click', () => {
-    clearUserLocally();
-    document.getElementById('restore-banner').classList.remove('show');
-    // Page1으로 돌아가기
-    document.getElementById('page2').classList.remove('active');
-    document.getElementById('page1').classList.add('active');
-    document.getElementById('inp-name').value = '';
-    document.getElementById('inp-org').value = '';
-    document.getElementById('btn-next').disabled = true;
-    currentUser = null;
-    setStatus('조를 선택해 주세요.', '');
-  });
 
   // ── 입력 검사 ──
   const inpName = document.getElementById('inp-name');
   const inpOrg = document.getElementById('inp-org');
   const btnNext = document.getElementById('btn-next');
 
-  function checkInputs() {
-    btnNext.disabled = !(inpName.value.trim() && inpOrg.value.trim());
-  }
-  inpName.addEventListener('input', checkInputs);
-  inpOrg.addEventListener('input', checkInputs);
-  [inpName, inpOrg].forEach(el => {
-    el.addEventListener('keydown', e => { if (e.key === 'Enter') btnNext.click(); });
-  });
-
-  btnNext.addEventListener('click', () => {
-    const user = { name: inpName.value.trim(), org: inpOrg.value.trim() };
-    enterPage2(user);
-  });
-
-  // 페이지 로드 시 재접속 확인
-  checkReturningUser();
+function checkReturningUser() {
+  const saved = loadUserLocally();
+  if (!saved) return;
+  document.getElementById('inp-name').value = saved.name;
+  document.getElementById('inp-org').value = saved.org;
+  document.getElementById('btn-next').disabled = false;
+  enterPage2(saved);
+  setStatus(`${saved.name}님 환영합니다.`, 'ok');
+}
+checkReturningUser();
 </script>
 </body>
 </html>
