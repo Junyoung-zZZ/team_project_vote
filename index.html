@@ -23,9 +23,9 @@
       --danger: #8b2020;
       --danger-light: #fdf0f0;
       --danger-border: #e8c0c0;
-      --info: #1a3d6b;
-      --info-light: #eef3fa;
-      --info-border: #b8cce4;
+      --warn: #7a4f00;
+      --warn-light: #fdf8ee;
+      --warn-border: #e8d5a0;
       --radius: 10px;
       --radius-lg: 14px;
     }
@@ -41,330 +41,207 @@
       padding: 2rem 1rem 4rem;
     }
 
-    .container {
-      width: 100%;
-      max-width: 680px;
-    }
+    .container { width: 100%; max-width: 680px; }
 
-    .header {
-      text-align: center;
-      margin-bottom: 2.5rem;
-      padding-top: 1rem;
-    }
-    .header h1 {
-      font-size: 22px;
-      font-weight: 700;
-      letter-spacing: -0.5px;
-      color: var(--text);
-    }
-    .header p {
-      font-size: 14px;
-      color: var(--text-sub);
-      margin-top: 6px;
-    }
-    .header-dot {
-      display: inline-block;
-      width: 8px; height: 8px;
-      background: var(--accent);
-      border-radius: 50%;
-      margin-bottom: 12px;
-    }
+    .header { text-align: center; margin-bottom: 2.5rem; padding-top: 1rem; }
+    .header h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; color: var(--text); }
+    .header p { font-size: 14px; color: var(--text-sub); margin-top: 6px; }
+    .header-dot { display: inline-block; width: 8px; height: 8px; background: var(--accent); border-radius: 50%; margin-bottom: 12px; }
 
     .page { display: none; }
     .page.active { display: block; }
 
-    /* ── Page 1 ── */
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: 2rem;
-    }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 2rem; }
 
     .field { margin-bottom: 1.25rem; }
-    .field label {
-      display: block;
-      font-size: 12px;
-      font-weight: 500;
-      color: var(--text-sub);
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-      margin-bottom: 8px;
-    }
+    .field label { display: block; font-size: 12px; font-weight: 500; color: var(--text-sub); letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 8px; }
     .field input {
-      width: 100%;
-      height: 44px;
-      padding: 0 14px;
-      font-family: 'Noto Sans KR', sans-serif;
-      font-size: 15px;
-      color: var(--text);
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      outline: none;
-      transition: border-color 0.15s, background 0.15s;
+      width: 100%; height: 44px; padding: 0 14px;
+      font-family: 'Noto Sans KR', sans-serif; font-size: 15px; color: var(--text);
+      background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius);
+      outline: none; transition: border-color 0.15s, background 0.15s;
     }
-    .field input:focus {
-      border-color: var(--accent);
-      background: #fff;
-    }
+    .field input:focus { border-color: var(--accent); background: #fff; }
     .field input::placeholder { color: var(--text-hint); }
 
     .btn-primary {
-      width: 100%;
-      height: 48px;
-      margin-top: 0.5rem;
-      background: var(--accent);
-      color: #fff;
-      border: none;
-      border-radius: var(--radius);
-      font-family: 'Noto Sans KR', sans-serif;
-      font-size: 15px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: opacity 0.15s, transform 0.1s;
+      width: 100%; height: 48px; margin-top: 0.5rem;
+      background: var(--accent); color: #fff; border: none; border-radius: var(--radius);
+      font-family: 'Noto Sans KR', sans-serif; font-size: 15px; font-weight: 500;
+      cursor: pointer; transition: opacity 0.15s, transform 0.1s;
     }
     .btn-primary:hover:not(:disabled) { opacity: 0.88; }
     .btn-primary:active:not(:disabled) { transform: scale(0.99); }
     .btn-primary:disabled { opacity: 0.3; cursor: not-allowed; }
 
-    /* ── Page 2 ── */
-    .toolbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 1.5rem;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
+    /* ── Page 2 toolbar ── */
+    .toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 10px; }
 
     .user-chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 99px;
-      padding: 6px 14px 6px 8px;
-      font-size: 13px;
-      color: var(--text-sub);
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--surface); border: 1px solid var(--border); border-radius: 99px;
+      padding: 6px 14px 6px 8px; font-size: 13px; color: var(--text-sub);
     }
     .user-chip-avatar {
-      width: 26px; height: 26px;
-      border-radius: 50%;
-      background: var(--accent-light);
-      border: 1px solid var(--accent-border);
+      width: 26px; height: 26px; border-radius: 50%;
+      background: var(--accent-light); border: 1px solid var(--accent-border);
       display: flex; align-items: center; justify-content: center;
-      font-size: 11px; font-weight: 700;
-      color: var(--accent);
+      font-size: 11px; font-weight: 700; color: var(--accent);
     }
     .user-chip strong { color: var(--text); font-weight: 500; }
 
+    .toolbar-right { display: flex; align-items: center; gap: 8px; }
+
+    .btn-leave-all {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 7px 13px;
+      background: var(--danger-light); border: 1px solid var(--danger-border); border-radius: var(--radius);
+      font-family: 'Noto Sans KR', sans-serif; font-size: 13px; color: var(--danger);
+      cursor: pointer; transition: background 0.12s; white-space: nowrap;
+    }
+    .btn-leave-all:hover { background: #f9e0e0; }
+    .btn-leave-all.hidden { display: none; }
+
     .refresh-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 7px 14px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      font-family: 'Noto Sans KR', sans-serif;
-      font-size: 13px;
-      color: var(--text-sub);
-      cursor: pointer;
-      transition: background 0.12s;
+      display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px;
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      font-family: 'Noto Sans KR', sans-serif; font-size: 13px; color: var(--text-sub);
+      cursor: pointer; transition: background 0.12s;
     }
     .refresh-btn:hover { background: var(--bg); }
     .refresh-icon { display: inline-block; transition: transform 0.6s; }
     .refresh-icon.spin { transform: rotate(360deg); }
 
-    .groups-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
-    }
-
-    @media (max-width: 480px) {
-      .groups-grid { grid-template-columns: 1fr; }
-    }
+    /* ── Groups grid ── */
+    .groups-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    @media (max-width: 480px) { .groups-grid { grid-template-columns: 1fr; } }
 
     .group-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: 1.25rem;
-      cursor: pointer;
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
+      padding: 1.25rem; cursor: pointer;
       transition: border-color 0.15s, background 0.15s, transform 0.1s;
-      position: relative;
-      user-select: none;
+      position: relative; user-select: none;
     }
-    .group-card:hover:not(.full):not(.joined) {
-      border-color: var(--border-strong);
-      transform: translateY(-1px);
-    }
+    .group-card:hover:not(.full):not(.joined) { border-color: var(--border-strong); transform: translateY(-1px); }
     .group-card:active:not(.full):not(.joined) { transform: translateY(0); }
-    .group-card.joined {
-      border: 1.5px solid var(--accent-border);
-      background: var(--accent-light);
-    }
-    .group-card.full:not(.joined) {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
+    .group-card.joined { border: 1.5px solid var(--accent-border); background: var(--accent-light); }
+    .group-card.full:not(.joined) { opacity: 0.5; cursor: not-allowed; }
 
     .badge {
-      position: absolute;
-      top: 10px; right: 10px;
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 0.04em;
-      padding: 3px 9px;
-      border-radius: 99px;
+      position: absolute; top: 10px; right: 10px;
+      font-size: 10px; font-weight: 700; letter-spacing: 0.04em;
+      padding: 3px 9px; border-radius: 99px;
     }
     .badge-joined { background: var(--accent-light); color: var(--accent); border: 1px solid var(--accent-border); }
     .badge-full { background: var(--danger-light); color: var(--danger); border: 1px solid var(--danger-border); }
 
-    .group-name {
-      font-size: 16px;
-      font-weight: 700;
-      color: var(--text);
-      margin-bottom: 2px;
-      letter-spacing: -0.3px;
-    }
-    .group-desc {
-      font-size: 12px;
-      color: var(--text-sub);
-      margin-bottom: 12px;
-    }
+    .group-name { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 2px; letter-spacing: -0.3px; }
+    .group-desc { font-size: 12px; color: var(--text-sub); margin-bottom: 12px; }
 
-    .count-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 12px;
-    }
-    .count-bar-track {
-      flex: 1;
-      height: 3px;
-      background: var(--border);
-      border-radius: 2px;
-      overflow: hidden;
-    }
-    .count-bar-fill {
-      height: 100%;
-      border-radius: 2px;
-      background: var(--text-hint);
-      transition: width 0.4s ease;
-    }
+    .count-row { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+    .count-bar-track { flex: 1; height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+    .count-bar-fill { height: 100%; border-radius: 2px; background: var(--text-hint); transition: width 0.4s ease; }
     .group-card.joined .count-bar-fill { background: var(--accent); }
     .group-card.full:not(.joined) .count-bar-fill { background: var(--danger); }
-    .count-text {
-      font-family: 'DM Mono', monospace;
-      font-size: 12px;
-      color: var(--text-sub);
-      white-space: nowrap;
-    }
+    .count-text { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text-sub); white-space: nowrap; }
 
-    .divider {
-      height: 1px;
-      background: var(--border);
-      margin-bottom: 10px;
-    }
+    .divider { height: 1px; background: var(--border); margin-bottom: 10px; }
     .group-card.joined .divider { background: var(--accent-border); }
 
     .members-list { display: flex; flex-direction: column; gap: 5px; }
-    .member-row {
-      display: flex;
-      align-items: center;
-      gap: 7px;
-    }
+    .member-row { display: flex; align-items: center; gap: 7px; }
     .member-avatar {
-      width: 22px; height: 22px;
-      border-radius: 50%;
-      background: var(--bg);
-      border: 1px solid var(--border);
+      width: 22px; height: 22px; border-radius: 50%;
+      background: var(--bg); border: 1px solid var(--border);
       display: flex; align-items: center; justify-content: center;
-      font-size: 9px; font-weight: 700;
-      color: var(--text-sub);
-      flex-shrink: 0;
+      font-size: 9px; font-weight: 700; color: var(--text-sub); flex-shrink: 0;
     }
     .group-card.joined .member-avatar { background: #fff; border-color: var(--accent-border); }
-    .member-avatar.me {
-      background: var(--accent);
-      border-color: var(--accent);
-      color: #fff;
-    }
+    .member-avatar.me { background: var(--accent); border-color: var(--accent); color: #fff; }
     .member-info { display: flex; align-items: baseline; gap: 4px; overflow: hidden; }
-    .member-name {
-      font-size: 12px;
-      font-weight: 500;
-      color: var(--text);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .member-org {
-      font-size: 11px;
-      color: var(--text-hint);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .empty-hint {
-      font-size: 12px;
-      color: var(--text-hint);
-      padding: 2px 0;
-    }
+    .member-name { font-size: 12px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .member-org { font-size: 11px; color: var(--text-hint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .empty-hint { font-size: 12px; color: var(--text-hint); padding: 2px 0; }
 
+    /* ── Status / notice ── */
     .status-bar {
-      margin-top: 1.5rem;
-      padding: 12px 16px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      font-size: 13px;
-      color: var(--text-sub);
-      text-align: center;
+      margin-top: 1.5rem; padding: 12px 16px;
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      font-size: 13px; color: var(--text-sub); text-align: center;
       transition: background 0.2s, border-color 0.2s, color 0.2s;
     }
-    .status-bar.ok {
-      background: var(--accent-light);
-      border-color: var(--accent-border);
-      color: var(--accent);
-    }
-    .status-bar.err {
-      background: var(--danger-light);
-      border-color: var(--danger-border);
-      color: var(--danger);
-    }
+    .status-bar.ok { background: var(--accent-light); border-color: var(--accent-border); color: var(--accent); }
+    .status-bar.err { background: var(--danger-light); border-color: var(--danger-border); color: var(--danger); }
 
+    /* 재접속 안내 배너 */
+    .restore-banner {
+      display: none; align-items: center; justify-content: space-between; gap: 10px;
+      background: var(--warn-light); border: 1px solid var(--warn-border); border-radius: var(--radius);
+      padding: 12px 16px; margin-bottom: 1.5rem; font-size: 13px; color: var(--warn);
+      flex-wrap: wrap;
+    }
+    .restore-banner.show { display: flex; }
+    .restore-banner strong { font-weight: 600; }
+    .restore-banner-btns { display: flex; gap: 8px; flex-shrink: 0; }
+    .btn-restore {
+      padding: 6px 14px; border-radius: var(--radius);
+      font-family: 'Noto Sans KR', sans-serif; font-size: 12px; font-weight: 500;
+      cursor: pointer; border: 1px solid var(--warn-border);
+    }
+    .btn-restore.yes { background: var(--warn); color: #fff; border-color: var(--warn); }
+    .btn-restore.yes:hover { opacity: 0.88; }
+    .btn-restore.no { background: transparent; color: var(--warn); }
+    .btn-restore.no:hover { background: var(--warn-border); }
+
+    /* 로딩 */
     .loading-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(245,244,240,0.8);
-      align-items: center;
-      justify-content: center;
-      font-size: 14px;
-      color: var(--text-sub);
-      z-index: 100;
+      display: none; position: fixed; inset: 0;
+      background: rgba(245,244,240,0.8); align-items: center; justify-content: center;
+      font-size: 14px; color: var(--text-sub); z-index: 100;
     }
     .loading-overlay.active { display: flex; }
-    .spinner {
-      width: 20px; height: 20px;
-      border: 2px solid var(--border);
-      border-top-color: var(--accent);
-      border-radius: 50%;
-      animation: spin 0.7s linear infinite;
-      margin-right: 10px;
-    }
+    .spinner { width: 20px; height: 20px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; margin-right: 10px; }
     @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* 확인 모달 */
+    .modal-backdrop {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.35); z-index: 200; align-items: center; justify-content: center;
+    }
+    .modal-backdrop.active { display: flex; }
+    .modal {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
+      padding: 1.75rem; width: 320px; max-width: 90vw; text-align: center;
+    }
+    .modal h3 { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+    .modal p { font-size: 13px; color: var(--text-sub); margin-bottom: 1.5rem; line-height: 1.6; }
+    .modal-btns { display: flex; gap: 8px; }
+    .modal-btns button {
+      flex: 1; height: 42px; border-radius: var(--radius); border: 1px solid var(--border);
+      font-family: 'Noto Sans KR', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer;
+    }
+    .modal-btns .btn-confirm { background: var(--danger); color: #fff; border-color: var(--danger); }
+    .modal-btns .btn-confirm:hover { opacity: 0.88; }
+    .modal-btns .btn-cancel { background: transparent; color: var(--text-sub); }
+    .modal-btns .btn-cancel:hover { background: var(--bg); }
   </style>
 </head>
 <body>
 
 <div class="loading-overlay" id="loading-overlay">
-  <div class="spinner"></div> 연결 중...
+  <div class="spinner"></div> 잠시만요...
+</div>
+
+<!-- 나가기 확인 모달 -->
+<div class="modal-backdrop" id="modal-backdrop">
+  <div class="modal">
+    <h3>조에서 나가시겠어요?</h3>
+    <p>나가면 해당 자리가 빠지며<br>다른 사람이 들어올 수 있습니다.</p>
+    <div class="modal-btns">
+      <button class="btn-cancel" id="modal-cancel">취소</button>
+      <button class="btn-confirm" id="modal-confirm">나가기</button>
+    </div>
+  </div>
 </div>
 
 <div class="container">
@@ -391,14 +268,26 @@
 
   <!-- Page 2 -->
   <div id="page2" class="page">
+    <!-- 재접속 감지 배너 -->
+    <div class="restore-banner" id="restore-banner">
+      <span>이전에 <strong id="restore-info"></strong>으로 신청한 기록이 있습니다. 불러올까요?</span>
+      <div class="restore-banner-btns">
+        <button class="btn-restore yes" id="btn-restore-yes">불러오기</button>
+        <button class="btn-restore no" id="btn-restore-no">새로 시작</button>
+      </div>
+    </div>
+
     <div class="toolbar">
       <div class="user-chip">
         <div class="user-chip-avatar" id="chip-avatar"></div>
         <span><strong id="display-name"></strong>&nbsp;·&nbsp;<span id="display-org"></span></span>
       </div>
-      <button class="refresh-btn" id="btn-refresh">
-        <span class="refresh-icon" id="refresh-icon">↻</span> 새로고침
-      </button>
+      <div class="toolbar-right">
+        <button class="btn-leave-all hidden" id="btn-leave-all">조 나가기</button>
+        <button class="refresh-btn" id="btn-refresh">
+          <span class="refresh-icon" id="refresh-icon">↻</span> 새로고침
+        </button>
+      </div>
     </div>
 
     <div class="groups-grid" id="groups-grid"></div>
@@ -406,7 +295,6 @@
   </div>
 </div>
 
-<!-- Firebase SDK -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getDatabase, ref, onValue, runTransaction, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
@@ -423,13 +311,15 @@
   };
 
   const GROUPS = [
-   { key: 'g1', name: '1조', desc: '주제: 100일 백신 개발 목표는 충분할까? - 전파력별 방역·백신 개입 전략 분석', max: 5 },
-   { key: 'g2', name: '2조', desc: '주제: 지역별 호흡기 감염병 전파양상 비교 분석', max: 5 },
-   { key: 'g3', name: '3조', desc: '주제: 통계모델을 이용한 계절성 감염병의 향후 예측', max: 5 },
-   { key: 'g4', name: '4조', desc: '주제: 신변종 감염병이 나타난다면 우리는 얼마나 빨리 사회적 거리두기를 시행해야 할까?', max: 5 },
-   { key: 'g5', name: '5조', desc: '주제: 같은 50% 접촉 감소, 누구에게 적용해야 가장 효과적일까?', max: 4 },
-   { key: 'g6', name: '6조', desc: '주제: 인플루엔자와 같은 다양한 호흡기 감염병이 유행할 때, 의료병상 개수는 얼마나 준비해야하는가?', max: 4 },
+  { key: 'g1', name: '1조', desc: '주제: 100일 백신 개발 목표는 충분할까? - 전파력별 방역·백신 개입 전략 분석', max: 2 },
+  { key: 'g2', name: '2조', desc: '주제: 지역별 호흡기 감염병 전파양상 비교 분석', max: 2 },
+  { key: 'g3', name: '3조', desc: '주제: 통계모델을 이용한 계절성 감염병의 향후 예측', max: 2 },
+  { key: 'g4', name: '4조', desc: '주제: 신변종 감염병이 나타난다면 우리는 얼마나 빨리 사회적 거리두기를 시행해야 할까?', max: 2 },
+  { key: 'g5', name: '5조', desc: '주제: 같은 50% 접촉 감소, 누구에게 적용해야 가장 효과적일까?', max: 2 },
+  { key: 'g6', name: '6조', desc: '주제: 인플루엔자와 같은 다양한 호흡기 감염병이 유행할 때, 의료병상 개수는 얼마나 준비해야하는가?', max: 2 },
   ];
+
+  const LS_KEY = 'group_app_user';
 
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
@@ -437,7 +327,18 @@
 
   let currentUser = null;
   let groupData = {};
-  let unsubscribe = null;
+  let pendingLeaveKey = null;
+
+  // ── localStorage 헬퍼 ──
+  function saveUserLocally(user) {
+    localStorage.setItem(LS_KEY, JSON.stringify(user));
+  }
+  function loadUserLocally() {
+    try { return JSON.parse(localStorage.getItem(LS_KEY)); } catch { return null; }
+  }
+  function clearUserLocally() {
+    localStorage.removeItem(LS_KEY);
+  }
 
   function showLoading(v) {
     document.getElementById('loading-overlay').classList.toggle('active', v);
@@ -447,7 +348,12 @@
     return name ? name.slice(0, 2) : '?';
   }
 
+  function userKey(u) {
+    return (u.name + '_' + u.org).replace(/[.#$[\]/]/g, '_');
+  }
+
   function findUserGroup() {
+    if (!currentUser) return null;
     for (const g of GROUPS) {
       const members = groupData[g.key] || {};
       for (const uid in members) {
@@ -462,6 +368,12 @@
     const bar = document.getElementById('status-bar');
     bar.textContent = msg;
     bar.className = 'status-bar' + (type ? ' ' + type : '');
+  }
+
+  function updateLeaveBtn() {
+    const btn = document.getElementById('btn-leave-all');
+    const inGroup = !!findUserGroup();
+    btn.classList.toggle('hidden', !inGroup);
   }
 
   function renderGroups() {
@@ -485,7 +397,7 @@
         membersHTML = '<p class="empty-hint">아직 없음</p>';
       } else {
         membersHTML = memberList.map(m => {
-          const isMe = m.name === currentUser.name && m.org === currentUser.org;
+          const isMe = currentUser && m.name === currentUser.name && m.org === currentUser.org;
           return `<div class="member-row">
             <div class="member-avatar ${isMe ? 'me' : ''}">${initials(m.name)}</div>
             <div class="member-info">
@@ -501,9 +413,7 @@
         <div class="group-name">${g.name}</div>
         <div class="group-desc">${g.desc}</div>
         <div class="count-row">
-          <div class="count-bar-track">
-            <div class="count-bar-fill" style="width:${pct}%"></div>
-          </div>
+          <div class="count-bar-track"><div class="count-bar-fill" style="width:${pct}%"></div></div>
           <span class="count-text">${count} / ${g.max}</span>
         </div>
         <div class="divider"></div>
@@ -512,29 +422,23 @@
 
       if (!isFull && !isJoined) {
         card.addEventListener('click', () => joinGroup(g.key));
-      } else if (isJoined) {
-        card.addEventListener('click', () => leaveGroup(g.key));
       }
+      // 조 카드 클릭으로 나가기 제거 — 나가기 버튼으로만 가능
       grid.appendChild(card);
     });
-  }
 
-  // 사용자 고유 key (이름+소속 기반)
-  function userKey(u) {
-    return (u.name + '_' + u.org).replace(/[.#$[\]/]/g, '_');
+    updateLeaveBtn();
   }
 
   async function joinGroup(key) {
     const g = GROUPS.find(g => g.key === key);
     showLoading(true);
     try {
-      // 기존 조에서 나가기
       const prevGroup = findUserGroup();
       if (prevGroup) {
         const prevRef = ref(db, `groups/${prevGroup}/${userKey(currentUser)}`);
         await runTransaction(prevRef, () => null);
       }
-      // 새 조 참가 (정원 확인 포함)
       const targetRef = ref(db, `groups/${key}`);
       const snap = await get(targetRef);
       const current = snap.val() || {};
@@ -564,23 +468,85 @@
     showLoading(false);
   }
 
-  // 실시간 리스너
-  function startListening() {
-    unsubscribe = onValue(dbRef, (snap) => {
-      const val = snap.val() || {};
-      GROUPS.forEach(g => { groupData[g.key] = val[g.key] || {}; });
-      if (currentUser) renderGroups();
-    });
-  }
+  // ── 나가기 버튼 (모달 경유) ──
+  document.getElementById('btn-leave-all').addEventListener('click', () => {
+    const ug = findUserGroup();
+    if (!ug) return;
+    pendingLeaveKey = ug;
+    document.getElementById('modal-backdrop').classList.add('active');
+  });
+  document.getElementById('modal-cancel').addEventListener('click', () => {
+    document.getElementById('modal-backdrop').classList.remove('active');
+    pendingLeaveKey = null;
+  });
+  document.getElementById('modal-confirm').addEventListener('click', async () => {
+    document.getElementById('modal-backdrop').classList.remove('active');
+    if (pendingLeaveKey) {
+      await leaveGroup(pendingLeaveKey);
+      pendingLeaveKey = null;
+    }
+  });
 
-  // 새로고침 버튼 (이미 실시간이지만 애니메이션용)
+  // ── 실시간 리스너 ──
+  onValue(dbRef, (snap) => {
+    const val = snap.val() || {};
+    GROUPS.forEach(g => { groupData[g.key] = val[g.key] || {}; });
+    if (currentUser) renderGroups();
+  });
+
+  // ── 새로고침 버튼 ──
   document.getElementById('btn-refresh').addEventListener('click', () => {
     const icon = document.getElementById('refresh-icon');
     icon.classList.add('spin');
     setTimeout(() => icon.classList.remove('spin'), 700);
   });
 
-  // 입력 검사
+  // ── Page 2 진입 ──
+  function enterPage2(user) {
+    currentUser = user;
+    saveUserLocally(user);
+    document.getElementById('display-name').textContent = user.name;
+    document.getElementById('display-org').textContent = user.org;
+    document.getElementById('chip-avatar').textContent = initials(user.name);
+    document.getElementById('page1').classList.remove('active');
+    document.getElementById('page2').classList.add('active');
+    renderGroups();
+  }
+
+  // ── 재접속 감지: 기존 localStorage 유저 확인 ──
+  function checkReturningUser() {
+    const saved = loadUserLocally();
+    if (!saved) return;
+    // 입력창에 미리 채워넣기
+    document.getElementById('inp-name').value = saved.name;
+    document.getElementById('inp-org').value = saved.org;
+    document.getElementById('btn-next').disabled = false;
+    // Page2로 바로 이동 후 배너 표시
+    enterPage2(saved);
+    const banner = document.getElementById('restore-banner');
+    document.getElementById('restore-info').textContent = `${saved.name} (${saved.org})`;
+    banner.classList.add('show');
+  }
+
+  document.getElementById('btn-restore-yes').addEventListener('click', () => {
+    document.getElementById('restore-banner').classList.remove('show');
+    setStatus(`${currentUser.name}님으로 자동 복원되었습니다.`, 'ok');
+  });
+
+  document.getElementById('btn-restore-no').addEventListener('click', () => {
+    clearUserLocally();
+    document.getElementById('restore-banner').classList.remove('show');
+    // Page1으로 돌아가기
+    document.getElementById('page2').classList.remove('active');
+    document.getElementById('page1').classList.add('active');
+    document.getElementById('inp-name').value = '';
+    document.getElementById('inp-org').value = '';
+    document.getElementById('btn-next').disabled = true;
+    currentUser = null;
+    setStatus('조를 선택해 주세요.', '');
+  });
+
+  // ── 입력 검사 ──
   const inpName = document.getElementById('inp-name');
   const inpOrg = document.getElementById('inp-org');
   const btnNext = document.getElementById('btn-next');
@@ -595,16 +561,12 @@
   });
 
   btnNext.addEventListener('click', () => {
-    currentUser = { name: inpName.value.trim(), org: inpOrg.value.trim() };
-    document.getElementById('display-name').textContent = currentUser.name;
-    document.getElementById('display-org').textContent = currentUser.org;
-    document.getElementById('chip-avatar').textContent = initials(currentUser.name);
-    document.getElementById('page1').classList.remove('active');
-    document.getElementById('page2').classList.add('active');
-    renderGroups();
+    const user = { name: inpName.value.trim(), org: inpOrg.value.trim() };
+    enterPage2(user);
   });
 
-  startListening();
+  // 페이지 로드 시 재접속 확인
+  checkReturningUser();
 </script>
 </body>
 </html>
