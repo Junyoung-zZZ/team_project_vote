@@ -506,37 +506,34 @@
     renderGroups();
   }
 
-  // ── 재접속 감지: 기존 localStorage 유저 확인 ──
-  function checkReturningUser() {
-    const saved = loadUserLocally();
-    if (!saved) return;
-    // 입력창에 미리 채워넣기
-    document.getElementById('inp-name').value = saved.name;
-    document.getElementById('inp-org').value = saved.org;
-    document.getElementById('btn-next').disabled = false;
-    // Page2로 바로 이동 후 배너 표시
-    enterPage2(saved);
-    const banner = document.getElementById('restore-banner');
-    document.getElementById('restore-info').textContent = `${saved.name} (${saved.org})`;
-    banner.classList.add('show');
-  }
-
 
   // ── 입력 검사 ──
   const inpName = document.getElementById('inp-name');
   const inpOrg = document.getElementById('inp-org');
   const btnNext = document.getElementById('btn-next');
 
-function checkReturningUser() {
-  const saved = loadUserLocally();
-  if (!saved) return;
-  document.getElementById('inp-name').value = saved.name;
-  document.getElementById('inp-org').value = saved.org;
-  document.getElementById('btn-next').disabled = false;
-  enterPage2(saved);
-  setStatus(`${saved.name}님 환영합니다.`, 'ok');
-}
-checkReturningUser();
+  function checkInputs() {
+    btnNext.disabled = !(inpName.value.trim() && inpOrg.value.trim());
+  }
+  inpName.addEventListener('input', checkInputs);
+  inpOrg.addEventListener('input', checkInputs);
+  [inpName, inpOrg].forEach(el => {
+    el.addEventListener('keydown', e => { if (e.key === 'Enter') btnNext.click(); });
+  });
+
+  btnNext.addEventListener('click', () => {
+    const user = { name: inpName.value.trim(), org: inpOrg.value.trim() };
+    enterPage2(user);
+  });
+
+  // ── 재접속 자동 복원 ──
+  function checkReturningUser() {
+    const saved = loadUserLocally();
+    if (!saved) return;
+    enterPage2(saved);
+    setStatus(`${saved.name}님 환영합니다.`, 'ok');
+  }
+  checkReturningUser();
 </script>
 </body>
 </html>
