@@ -1,257 +1,610 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>조 배정 신청</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-<style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  .page { display: none; padding: 2rem 1.5rem; }
-  .page.active { display: block; }
-
-  h2 { font-size: 18px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 0.5rem; }
-  .sub { font-size: 14px; color: var(--color-text-secondary); margin-bottom: 2rem; }
-
-  .field { margin-bottom: 1rem; }
-  .field label { display: block; font-size: 13px; color: var(--color-text-secondary); margin-bottom: 6px; }
-  .field input { width: 100%; padding: 0 12px; height: 40px; font-size: 15px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); background: var(--color-background-primary); color: var(--color-text-primary); outline: none; }
-  .field input:focus { border-color: var(--color-border-primary); box-shadow: 0 0 0 2px rgba(99,99,99,0.12); }
-
-  .btn-primary { width: 100%; height: 44px; margin-top: 1.5rem; border-radius: var(--border-radius-md); border: none; background: var(--color-text-primary); color: var(--color-background-primary); font-size: 15px; font-weight: 500; cursor: pointer; transition: opacity 0.15s; }
-  .btn-primary:hover { opacity: 0.85; }
-  .btn-primary:disabled { opacity: 0.35; cursor: not-allowed; }
-
-  .user-tag { display: inline-flex; align-items: center; gap: 8px; background: var(--color-background-secondary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); padding: 8px 14px; margin-bottom: 1.5rem; font-size: 14px; color: var(--color-text-secondary); }
-  .user-tag strong { color: var(--color-text-primary); font-weight: 500; }
-
-  .groups-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
-
-  .group-card { border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1.25rem; background: var(--color-background-primary); cursor: pointer; transition: border-color 0.15s, background 0.15s; position: relative; }
-  .group-card:hover:not(.full):not(.joined) { border-color: var(--color-border-primary); background: var(--color-background-secondary); }
-  .group-card.joined { border: 2px solid var(--color-border-info); background: var(--color-background-info); }
-  .group-card.full:not(.joined) { opacity: 0.5; cursor: not-allowed; }
-
-  .group-name { font-size: 15px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 2px; }
-  .group-desc { font-size: 12px; color: var(--color-text-secondary); margin-bottom: 10px; }
-
-  .count-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
-  .count-bar-wrap { flex: 1; height: 4px; background: var(--color-background-secondary); border-radius: 2px; margin-right: 10px; overflow: hidden; }
-  .count-bar { height: 100%; border-radius: 2px; background: var(--color-text-secondary); transition: width 0.3s; }
-  .group-card.joined .count-bar { background: var(--color-text-info); }
-  .group-card.full:not(.joined) .count-bar { background: var(--color-text-danger); }
-  .count-label { font-size: 12px; color: var(--color-text-secondary); white-space: nowrap; }
-
-  .members-list { border-top: 0.5px solid var(--color-border-tertiary); padding-top: 8px; margin-top: 2px; }
-  .member-row { display: flex; align-items: center; gap: 6px; padding: 3px 0; }
-  .member-avatar { width: 20px; height: 20px; border-radius: 50%; background: var(--color-background-secondary); border: 0.5px solid var(--color-border-tertiary); display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 500; color: var(--color-text-secondary); flex-shrink: 0; }
-  .group-card.joined .member-avatar { background: var(--color-background-primary); }
-  .me-avatar { background: var(--color-background-info) !important; color: var(--color-text-info) !important; border-color: var(--color-border-info) !important; }
-  .member-name { font-size: 12px; color: var(--color-text-primary); font-weight: 500; }
-  .member-org { font-size: 11px; color: var(--color-text-secondary); margin-left: 2px; }
-  .empty-hint { font-size: 12px; color: var(--color-text-tertiary); padding: 4px 0; }
-
-  .badge { position: absolute; top: 10px; right: 10px; font-size: 11px; padding: 2px 8px; border-radius: 99px; font-weight: 500; }
-  .badge-joined { background: var(--color-background-info); color: var(--color-text-info); }
-  .badge-full { background: var(--color-background-danger); color: var(--color-text-danger); }
-
-  .status-bar { margin-top: 1.5rem; padding: 12px 16px; background: var(--color-background-secondary); border-radius: var(--border-radius-md); font-size: 13px; color: var(--color-text-secondary); text-align: center; min-height: 42px; }
-  .status-bar.success { background: var(--color-background-success); color: var(--color-text-success); }
-
-  .top-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 8px; }
-  .refresh-btn { display: flex; align-items: center; gap: 6px; padding: 6px 14px; font-size: 13px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); background: transparent; color: var(--color-text-secondary); cursor: pointer; }
-  .refresh-btn:hover { background: var(--color-background-secondary); }
-  .spinning { animation: spin 0.7s linear infinite; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-</style>
-
-<h2 class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden;">조 배정 앱 — 이름과 소속을 입력 후 조를 선택하세요</h2>
-
-<div id="page1" class="page active">
-  <h2>조 배정 신청</h2>
-  <p class="sub">이름과 소속을 입력하고 조를 선택해 주세요.</p>
-  <div class="field">
-    <label>이름</label>
-    <input id="inp-name" type="text" placeholder="홍길동" />
-  </div>
-  <div class="field">
-    <label>소속</label>
-    <input id="inp-org" type="text" placeholder="소속 학교/부서/기관" />
-  </div>
-  <button class="btn-primary" id="btn-next" disabled>다음 →</button>
-</div>
-
-<div id="page2" class="page">
-  <h2>조 선택</h2>
-  <div class="top-row">
-    <div class="user-tag" style="margin-bottom:0;">
-      <i class="ti ti-user" aria-hidden="true"></i>
-      <span><strong id="display-name"></strong> · <span id="display-org"></span></span>
-    </div>
-    <button class="refresh-btn" id="btn-refresh">
-      <i class="ti ti-refresh" id="refresh-icon" aria-hidden="true"></i> 새로고침
-    </button>
-  </div>
-
-  <div class="groups-grid" id="groups-grid"></div>
-  <div class="status-bar" id="status-bar">조를 선택해 주세요.</div>
-</div>
-
-<script>
-const GROUPS = [
-  { key: 'g1', name: '1조', desc: '주제: 100일 백신 개발 목표는 충분할까? - 전파력별 방역·백신 개입 전략 분석', max: 5 },
-  { key: 'g2', name: '2조', desc: '주제: 지역별 호흡기 감염병 전파양상 비교 분석', max: 5 },
-  { key: 'g3', name: '3조', desc: '주제: 통계모델을 이용한 계절성 감염병의 향후 예측', max: 5 },
-  { key: 'g4', name: '4조', desc: '주제: 신변종 감염병이 나타난다면 우리는 얼마나 빨리 사회적 거리두기를 시행해야 할까?', max: 5 },
-  { key: 'g5', name: '5조', desc: '주제: 같은 50% 접촉 감소, 누구에게 적용해야 가장 효과적일까?', max: 4 },
-  { key: 'g6', name: '6조', desc: '주제: 인플루엔자와 같은 다양한 호흡기 감염병이 유행할 때, 의료병상 개수는 얼마나 준비해야하는가?', max: 4 },
-];
-
-const STORAGE_KEY = 'group_members_v1';
-let currentUser = null;
-let groupData = {};
-
-function getInitialData() {
-  const d = {};
-  GROUPS.forEach(g => { d[g.key] = []; });
-  return d;
-}
-
-async function loadData() {
-  try {
-    const res = await window.storage.get(STORAGE_KEY, true);
-    if (res && res.value) {
-      groupData = JSON.parse(res.value);
-      GROUPS.forEach(g => { if (!groupData[g.key]) groupData[g.key] = []; });
-    } else {
-      groupData = getInitialData();
-    }
-  } catch {
-    groupData = getInitialData();
-  }
-}
-
-async function saveData() {
-  try {
-    await window.storage.set(STORAGE_KEY, JSON.stringify(groupData), true);
-  } catch(e) { console.error(e); }
-}
-
-function findUserGroup() {
-  for (const g of GROUPS) {
-    const members = groupData[g.key] || [];
-    if (members.find(m => m.name === currentUser.name && m.org === currentUser.org)) return g.key;
-  }
-  return null;
-}
-
-function initials(name) {
-  if (!name) return '?';
-  return name.length >= 2 ? name.slice(0, 2) : name[0];
-}
-
-function renderGroups() {
-  const grid = document.getElementById('groups-grid');
-  const userGroup = findUserGroup();
-  grid.innerHTML = '';
-
-  GROUPS.forEach(g => {
-    const members = groupData[g.key] || [];
-    const count = members.length;
-    const isFull = count >= g.max;
-    const isJoined = userGroup === g.key;
-    const pct = Math.round((count / g.max) * 100);
-
-    const card = document.createElement('div');
-    card.className = 'group-card' + (isJoined ? ' joined' : isFull ? ' full' : '');
-
-    let membersHTML = '';
-    if (members.length === 0) {
-      membersHTML = '<p class="empty-hint">아직 없음</p>';
-    } else {
-      membersHTML = members.map(m => {
-        const isMe = m.name === currentUser.name && m.org === currentUser.org;
-        return `<div class="member-row">
-          <div class="member-avatar ${isMe ? 'me-avatar' : ''}">${initials(m.name)}</div>
-          <span class="member-name">${m.name}</span>
-          <span class="member-org">(${m.org})</span>
-        </div>`;
-      }).join('');
+    :root {
+      --bg: #f5f4f0;
+      --surface: #ffffff;
+      --border: #e2e0d8;
+      --border-strong: #c8c5b8;
+      --text: #1a1917;
+      --text-sub: #6b6860;
+      --text-hint: #a8a49a;
+      --accent: #2d5a3d;
+      --accent-light: #edf4ef;
+      --accent-border: #b8d4bf;
+      --danger: #8b2020;
+      --danger-light: #fdf0f0;
+      --danger-border: #e8c0c0;
+      --info: #1a3d6b;
+      --info-light: #eef3fa;
+      --info-border: #b8cce4;
+      --radius: 10px;
+      --radius-lg: 14px;
     }
 
-    card.innerHTML = `
-      ${isJoined ? '<span class="badge badge-joined">내 조</span>' : isFull ? '<span class="badge badge-full">마감</span>' : ''}
-      <div class="group-name">${g.name}</div>
-      <div class="group-desc">${g.desc}</div>
-      <div class="count-row">
-        <div class="count-bar-wrap"><div class="count-bar" style="width:${pct}%"></div></div>
-        <span class="count-label">${count} / ${g.max}명</span>
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 2rem 1rem 4rem;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 680px;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+      padding-top: 1rem;
+    }
+    .header h1 {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      color: var(--text);
+    }
+    .header p {
+      font-size: 14px;
+      color: var(--text-sub);
+      margin-top: 6px;
+    }
+    .header-dot {
+      display: inline-block;
+      width: 8px; height: 8px;
+      background: var(--accent);
+      border-radius: 50%;
+      margin-bottom: 12px;
+    }
+
+    .page { display: none; }
+    .page.active { display: block; }
+
+    /* ── Page 1 ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 2rem;
+    }
+
+    .field { margin-bottom: 1.25rem; }
+    .field label {
+      display: block;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-sub);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .field input {
+      width: 100%;
+      height: 44px;
+      padding: 0 14px;
+      font-family: 'Noto Sans KR', sans-serif;
+      font-size: 15px;
+      color: var(--text);
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      outline: none;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .field input:focus {
+      border-color: var(--accent);
+      background: #fff;
+    }
+    .field input::placeholder { color: var(--text-hint); }
+
+    .btn-primary {
+      width: 100%;
+      height: 48px;
+      margin-top: 0.5rem;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius);
+      font-family: 'Noto Sans KR', sans-serif;
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+    .btn-primary:hover:not(:disabled) { opacity: 0.88; }
+    .btn-primary:active:not(:disabled) { transform: scale(0.99); }
+    .btn-primary:disabled { opacity: 0.3; cursor: not-allowed; }
+
+    /* ── Page 2 ── */
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .user-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 99px;
+      padding: 6px 14px 6px 8px;
+      font-size: 13px;
+      color: var(--text-sub);
+    }
+    .user-chip-avatar {
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      background: var(--accent-light);
+      border: 1px solid var(--accent-border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700;
+      color: var(--accent);
+    }
+    .user-chip strong { color: var(--text); font-weight: 500; }
+
+    .refresh-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-family: 'Noto Sans KR', sans-serif;
+      font-size: 13px;
+      color: var(--text-sub);
+      cursor: pointer;
+      transition: background 0.12s;
+    }
+    .refresh-btn:hover { background: var(--bg); }
+    .refresh-icon { display: inline-block; transition: transform 0.6s; }
+    .refresh-icon.spin { transform: rotate(360deg); }
+
+    .groups-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+
+    @media (max-width: 480px) {
+      .groups-grid { grid-template-columns: 1fr; }
+    }
+
+    .group-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s, transform 0.1s;
+      position: relative;
+      user-select: none;
+    }
+    .group-card:hover:not(.full):not(.joined) {
+      border-color: var(--border-strong);
+      transform: translateY(-1px);
+    }
+    .group-card:active:not(.full):not(.joined) { transform: translateY(0); }
+    .group-card.joined {
+      border: 1.5px solid var(--accent-border);
+      background: var(--accent-light);
+    }
+    .group-card.full:not(.joined) {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .badge {
+      position: absolute;
+      top: 10px; right: 10px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      padding: 3px 9px;
+      border-radius: 99px;
+    }
+    .badge-joined { background: var(--accent-light); color: var(--accent); border: 1px solid var(--accent-border); }
+    .badge-full { background: var(--danger-light); color: var(--danger); border: 1px solid var(--danger-border); }
+
+    .group-name {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 2px;
+      letter-spacing: -0.3px;
+    }
+    .group-desc {
+      font-size: 12px;
+      color: var(--text-sub);
+      margin-bottom: 12px;
+    }
+
+    .count-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .count-bar-track {
+      flex: 1;
+      height: 3px;
+      background: var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .count-bar-fill {
+      height: 100%;
+      border-radius: 2px;
+      background: var(--text-hint);
+      transition: width 0.4s ease;
+    }
+    .group-card.joined .count-bar-fill { background: var(--accent); }
+    .group-card.full:not(.joined) .count-bar-fill { background: var(--danger); }
+    .count-text {
+      font-family: 'DM Mono', monospace;
+      font-size: 12px;
+      color: var(--text-sub);
+      white-space: nowrap;
+    }
+
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin-bottom: 10px;
+    }
+    .group-card.joined .divider { background: var(--accent-border); }
+
+    .members-list { display: flex; flex-direction: column; gap: 5px; }
+    .member-row {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+    .member-avatar {
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 9px; font-weight: 700;
+      color: var(--text-sub);
+      flex-shrink: 0;
+    }
+    .group-card.joined .member-avatar { background: #fff; border-color: var(--accent-border); }
+    .member-avatar.me {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+    .member-info { display: flex; align-items: baseline; gap: 4px; overflow: hidden; }
+    .member-name {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .member-org {
+      font-size: 11px;
+      color: var(--text-hint);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .empty-hint {
+      font-size: 12px;
+      color: var(--text-hint);
+      padding: 2px 0;
+    }
+
+    .status-bar {
+      margin-top: 1.5rem;
+      padding: 12px 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 13px;
+      color: var(--text-sub);
+      text-align: center;
+      transition: background 0.2s, border-color 0.2s, color 0.2s;
+    }
+    .status-bar.ok {
+      background: var(--accent-light);
+      border-color: var(--accent-border);
+      color: var(--accent);
+    }
+    .status-bar.err {
+      background: var(--danger-light);
+      border-color: var(--danger-border);
+      color: var(--danger);
+    }
+
+    .loading-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(245,244,240,0.8);
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      color: var(--text-sub);
+      z-index: 100;
+    }
+    .loading-overlay.active { display: flex; }
+    .spinner {
+      width: 20px; height: 20px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin-right: 10px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+<div class="loading-overlay" id="loading-overlay">
+  <div class="spinner"></div> 연결 중...
+</div>
+
+<div class="container">
+  <div class="header">
+    <div class="header-dot"></div>
+    <h1>조 배정 신청</h1>
+    <p>원하는 조를 선택해 주세요. 정원 초과 시 신청이 마감됩니다.</p>
+  </div>
+
+  <!-- Page 1 -->
+  <div id="page1" class="page active">
+    <div class="card">
+      <div class="field">
+        <label>이름</label>
+        <input id="inp-name" type="text" placeholder="홍길동" autocomplete="off" />
       </div>
-      <div class="members-list">${membersHTML}</div>
-    `;
+      <div class="field">
+        <label>소속</label>
+        <input id="inp-org" type="text" placeholder="소속 학교 / 부서 / 기관" autocomplete="off" />
+      </div>
+      <button class="btn-primary" id="btn-next" disabled>다음으로 →</button>
+    </div>
+  </div>
 
-    if (!isFull && !isJoined) {
-      card.addEventListener('click', () => joinGroup(g.key));
-    } else if (isJoined) {
-      card.addEventListener('click', () => leaveGroup(g.key));
+  <!-- Page 2 -->
+  <div id="page2" class="page">
+    <div class="toolbar">
+      <div class="user-chip">
+        <div class="user-chip-avatar" id="chip-avatar"></div>
+        <span><strong id="display-name"></strong>&nbsp;·&nbsp;<span id="display-org"></span></span>
+      </div>
+      <button class="refresh-btn" id="btn-refresh">
+        <span class="refresh-icon" id="refresh-icon">↻</span> 새로고침
+      </button>
+    </div>
+
+    <div class="groups-grid" id="groups-grid"></div>
+    <div class="status-bar" id="status-bar">조를 선택해 주세요.</div>
+  </div>
+</div>
+
+<!-- Firebase SDK -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, onValue, runTransaction, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBjnxtIvqa2Dodggaw3se7TzdF97yYad5E",
+    authDomain: "teamvote-34e70.firebaseapp.com",
+    databaseURL: "https://teamvote-34e70-default-rtdb.firebaseio.com",
+    projectId: "teamvote-34e70",
+    storageBucket: "teamvote-34e70.firebasestorage.app",
+    messagingSenderId: "638362284614",
+    appId: "1:638362284614:web:3285e18d3349f5e0fc1047",
+    measurementId: "G-93GXDH57XT"
+  };
+
+  const GROUPS = [
+   { key: 'g1', name: '1조', desc: '주제: 100일 백신 개발 목표는 충분할까? - 전파력별 방역·백신 개입 전략 분석', max: 5 },
+   { key: 'g2', name: '2조', desc: '주제: 지역별 호흡기 감염병 전파양상 비교 분석', max: 5 },
+   { key: 'g3', name: '3조', desc: '주제: 통계모델을 이용한 계절성 감염병의 향후 예측', max: 5 },
+   { key: 'g4', name: '4조', desc: '주제: 신변종 감염병이 나타난다면 우리는 얼마나 빨리 사회적 거리두기를 시행해야 할까?', max: 5 },
+   { key: 'g5', name: '5조', desc: '주제: 같은 50% 접촉 감소, 누구에게 적용해야 가장 효과적일까?', max: 4 },
+   { key: 'g6', name: '6조', desc: '주제: 인플루엔자와 같은 다양한 호흡기 감염병이 유행할 때, 의료병상 개수는 얼마나 준비해야하는가?', max: 4 },
+  ];
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+  const dbRef = ref(db, 'groups');
+
+  let currentUser = null;
+  let groupData = {};
+  let unsubscribe = null;
+
+  function showLoading(v) {
+    document.getElementById('loading-overlay').classList.toggle('active', v);
+  }
+
+  function initials(name) {
+    return name ? name.slice(0, 2) : '?';
+  }
+
+  function findUserGroup() {
+    for (const g of GROUPS) {
+      const members = groupData[g.key] || {};
+      for (const uid in members) {
+        const m = members[uid];
+        if (m.name === currentUser.name && m.org === currentUser.org) return g.key;
+      }
     }
-    grid.appendChild(card);
+    return null;
+  }
+
+  function setStatus(msg, type) {
+    const bar = document.getElementById('status-bar');
+    bar.textContent = msg;
+    bar.className = 'status-bar' + (type ? ' ' + type : '');
+  }
+
+  function renderGroups() {
+    const grid = document.getElementById('groups-grid');
+    const userGroup = findUserGroup();
+    grid.innerHTML = '';
+
+    GROUPS.forEach(g => {
+      const members = groupData[g.key] || {};
+      const memberList = Object.values(members);
+      const count = memberList.length;
+      const isFull = count >= g.max;
+      const isJoined = userGroup === g.key;
+      const pct = Math.round((count / g.max) * 100);
+
+      const card = document.createElement('div');
+      card.className = 'group-card' + (isJoined ? ' joined' : isFull ? ' full' : '');
+
+      let membersHTML = '';
+      if (memberList.length === 0) {
+        membersHTML = '<p class="empty-hint">아직 없음</p>';
+      } else {
+        membersHTML = memberList.map(m => {
+          const isMe = m.name === currentUser.name && m.org === currentUser.org;
+          return `<div class="member-row">
+            <div class="member-avatar ${isMe ? 'me' : ''}">${initials(m.name)}</div>
+            <div class="member-info">
+              <span class="member-name">${m.name}</span>
+              <span class="member-org">(${m.org})</span>
+            </div>
+          </div>`;
+        }).join('');
+      }
+
+      card.innerHTML = `
+        ${isJoined ? '<span class="badge badge-joined">내 조 ✓</span>' : isFull ? '<span class="badge badge-full">마감</span>' : ''}
+        <div class="group-name">${g.name}</div>
+        <div class="group-desc">${g.desc}</div>
+        <div class="count-row">
+          <div class="count-bar-track">
+            <div class="count-bar-fill" style="width:${pct}%"></div>
+          </div>
+          <span class="count-text">${count} / ${g.max}</span>
+        </div>
+        <div class="divider"></div>
+        <div class="members-list">${membersHTML}</div>
+      `;
+
+      if (!isFull && !isJoined) {
+        card.addEventListener('click', () => joinGroup(g.key));
+      } else if (isJoined) {
+        card.addEventListener('click', () => leaveGroup(g.key));
+      }
+      grid.appendChild(card);
+    });
+  }
+
+  // 사용자 고유 key (이름+소속 기반)
+  function userKey(u) {
+    return (u.name + '_' + u.org).replace(/[.#$[\]/]/g, '_');
+  }
+
+  async function joinGroup(key) {
+    const g = GROUPS.find(g => g.key === key);
+    showLoading(true);
+    try {
+      // 기존 조에서 나가기
+      const prevGroup = findUserGroup();
+      if (prevGroup) {
+        const prevRef = ref(db, `groups/${prevGroup}/${userKey(currentUser)}`);
+        await runTransaction(prevRef, () => null);
+      }
+      // 새 조 참가 (정원 확인 포함)
+      const targetRef = ref(db, `groups/${key}`);
+      const snap = await get(targetRef);
+      const current = snap.val() || {};
+      if (Object.keys(current).length >= g.max) {
+        setStatus('이미 정원이 초과되었습니다.', 'err');
+        showLoading(false);
+        return;
+      }
+      const memberRef = ref(db, `groups/${key}/${userKey(currentUser)}`);
+      await runTransaction(memberRef, () => ({ name: currentUser.name, org: currentUser.org }));
+      setStatus(`${g.name}에 참가했습니다!`, 'ok');
+    } catch(e) {
+      setStatus('오류가 발생했습니다. 다시 시도해 주세요.', 'err');
+    }
+    showLoading(false);
+  }
+
+  async function leaveGroup(key) {
+    showLoading(true);
+    try {
+      const memberRef = ref(db, `groups/${key}/${userKey(currentUser)}`);
+      await runTransaction(memberRef, () => null);
+      setStatus('조에서 나왔습니다. 다시 선택할 수 있습니다.', '');
+    } catch(e) {
+      setStatus('오류가 발생했습니다.', 'err');
+    }
+    showLoading(false);
+  }
+
+  // 실시간 리스너
+  function startListening() {
+    unsubscribe = onValue(dbRef, (snap) => {
+      const val = snap.val() || {};
+      GROUPS.forEach(g => { groupData[g.key] = val[g.key] || {}; });
+      if (currentUser) renderGroups();
+    });
+  }
+
+  // 새로고침 버튼 (이미 실시간이지만 애니메이션용)
+  document.getElementById('btn-refresh').addEventListener('click', () => {
+    const icon = document.getElementById('refresh-icon');
+    icon.classList.add('spin');
+    setTimeout(() => icon.classList.remove('spin'), 700);
   });
-}
 
-async function joinGroup(key) {
-  await loadData();
-  const userGroup = findUserGroup();
-  if (userGroup) {
-    groupData[userGroup] = groupData[userGroup].filter(m => !(m.name === currentUser.name && m.org === currentUser.org));
+  // 입력 검사
+  const inpName = document.getElementById('inp-name');
+  const inpOrg = document.getElementById('inp-org');
+  const btnNext = document.getElementById('btn-next');
+
+  function checkInputs() {
+    btnNext.disabled = !(inpName.value.trim() && inpOrg.value.trim());
   }
-  const members = groupData[key] || [];
-  const g = GROUPS.find(g => g.key === key);
-  if (members.length >= g.max) {
-    setStatus('이미 정원이 초과되었습니다. 새로고침 후 다시 시도해 주세요.', false);
+  inpName.addEventListener('input', checkInputs);
+  inpOrg.addEventListener('input', checkInputs);
+  [inpName, inpOrg].forEach(el => {
+    el.addEventListener('keydown', e => { if (e.key === 'Enter') btnNext.click(); });
+  });
+
+  btnNext.addEventListener('click', () => {
+    currentUser = { name: inpName.value.trim(), org: inpOrg.value.trim() };
+    document.getElementById('display-name').textContent = currentUser.name;
+    document.getElementById('display-org').textContent = currentUser.org;
+    document.getElementById('chip-avatar').textContent = initials(currentUser.name);
+    document.getElementById('page1').classList.remove('active');
+    document.getElementById('page2').classList.add('active');
     renderGroups();
-    return;
-  }
-  members.push({ name: currentUser.name, org: currentUser.org });
-  groupData[key] = members;
-  await saveData();
-  renderGroups();
-  setStatus(`${g.name}에 참가했습니다! (${members.length}/${g.max}명)`, true);
-}
+  });
 
-async function leaveGroup(key) {
-  await loadData();
-  groupData[key] = (groupData[key] || []).filter(m => !(m.name === currentUser.name && m.org === currentUser.org));
-  await saveData();
-  renderGroups();
-  setStatus('조에서 나왔습니다. 다시 선택할 수 있습니다.', false);
-}
-
-function setStatus(msg, ok) {
-  const bar = document.getElementById('status-bar');
-  bar.textContent = msg;
-  bar.className = 'status-bar' + (ok ? ' success' : '');
-}
-
-document.getElementById('btn-refresh').addEventListener('click', async () => {
-  const icon = document.getElementById('refresh-icon');
-  icon.classList.add('spinning');
-  await loadData();
-  renderGroups();
-  setTimeout(() => icon.classList.remove('spinning'), 600);
-});
-
-const inpName = document.getElementById('inp-name');
-const inpOrg = document.getElementById('inp-org');
-const btnNext = document.getElementById('btn-next');
-
-function checkInputs() {
-  btnNext.disabled = !(inpName.value.trim() && inpOrg.value.trim());
-}
-inpName.addEventListener('input', checkInputs);
-inpOrg.addEventListener('input', checkInputs);
-
-btnNext.addEventListener('click', async () => {
-  currentUser = { name: inpName.value.trim(), org: inpOrg.value.trim() };
-  document.getElementById('display-name').textContent = currentUser.name;
-  document.getElementById('display-org').textContent = currentUser.org;
-  document.getElementById('page1').classList.remove('active');
-  document.getElementById('page2').classList.add('active');
-  await loadData();
-  renderGroups();
-});
+  startListening();
 </script>
+</body>
+</html>
