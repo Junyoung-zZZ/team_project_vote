@@ -37,6 +37,86 @@
     .chart-value { text-align: right; font-variant-numeric: tabular-nums; }
     #reset { color: #8b2020; background: #fff; border-color: #8b2020; }
     #reset-status:empty { display: none; }
+    #reveal { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem; }
+    #turnout { margin: 0; }
+    #turnout strong { font-size: 1.25rem; }
+    .reveal-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    #show-results { border-color: #b8860b; background: linear-gradient(135deg, #d4a017, #e8653a); }
+    #toggle-dashboard { color: #2d5a3d; background: #fff; }
+
+    /* ---------- 결과 발표 무대 ---------- */
+    #ceremony {
+      width: 100vw; height: 100vh; height: 100dvh; max-width: none; max-height: none;
+      margin: 0; padding: 0; border: 0; overflow: hidden;
+      color: #fff; background: radial-gradient(ellipse at 50% 25%, #2b3170 0%, #12142e 55%, #07081a 100%);
+    }
+    #ceremony::backdrop { background: #07081a; }
+    #confetti { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 3; }
+    .spotlights { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+    .spotlights::before, .spotlights::after {
+      content: ""; position: absolute; top: -30%; width: 40vmax; height: 160%;
+      background: linear-gradient(to bottom, rgba(255, 236, 170, 0.22), transparent 75%);
+      clip-path: polygon(45% 0, 55% 0, 100% 100%, 0 100%);
+      animation: sweep 6s ease-in-out infinite alternate;
+    }
+    .spotlights::before { left: 5%; transform-origin: 50% 0; --from: -18deg; --to: 22deg; }
+    .spotlights::after { right: 5%; transform-origin: 50% 0; --from: 18deg; --to: -22deg; animation-delay: -3s; }
+    @keyframes sweep { from { transform: rotate(var(--from)); } to { transform: rotate(var(--to)); } }
+    .stage {
+      position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center;
+      height: 100%; padding: clamp(1rem, 4vw, 2.5rem) 16px; text-align: center;
+    }
+    #ceremony-title {
+      margin: 0; font-size: clamp(1.6rem, 6vw, 3.2rem); letter-spacing: 0.04em;
+      background: linear-gradient(90deg, #ffe58a, #ffb347, #ffe58a); -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    #announcer { min-height: 2.6em; margin: 0.6rem 0 0; font-size: clamp(1.1rem, 4.5vw, 2rem); font-weight: 700; }
+    #announcer.rolling { animation: shake 0.12s linear infinite; color: #ffe58a; }
+    @keyframes shake {
+      0% { transform: translate(0, 0) rotate(0); } 25% { transform: translate(-3px, 1px) rotate(-1deg); }
+      50% { transform: translate(2px, -1px) rotate(1deg); } 75% { transform: translate(-1px, 2px) rotate(0); }
+    }
+    #race {
+      --step: 300ms;
+      flex: 1; min-height: 0; width: 100%; max-width: 1000px; margin: 0.5rem 0 0; padding: 0; list-style: none;
+      display: grid; grid-template-columns: repeat(var(--lanes, 10), minmax(0, 1fr)); gap: clamp(0.25rem, 1.5vw, 0.9rem);
+    }
+    .lane { --level: 0; display: flex; flex-direction: column; min-width: 0; transition: opacity 0.6s; }
+    .lane-track { position: relative; flex: 1; min-height: 0; }
+    .lane-area { position: absolute; inset: clamp(4rem, 13vh, 6.5rem) 0 0; }
+    .lane-bar {
+      position: absolute; left: 12%; right: 12%; bottom: 0; height: calc(var(--level) * 100%);
+      border-radius: 8px 8px 0 0; background: linear-gradient(#9dbbff, #5b6cf0); box-shadow: 0 0 16px rgba(120, 140, 255, 0.35);
+      transition: height var(--step) linear, background 0.5s, box-shadow 0.5s;
+    }
+    .lane-head {
+      position: absolute; left: 0; right: 0; bottom: calc(var(--level) * 100%);
+      display: flex; flex-direction: column; align-items: center; padding-bottom: 0.3rem;
+      transition: bottom var(--step) linear;
+    }
+    .lane-medal { font-size: clamp(1.3rem, 5vw, 2.8rem); line-height: 1.1; transform: scale(0); transition: transform 0.6s cubic-bezier(0.2, 1.8, 0.4, 1); }
+    .lane-count { font-size: clamp(0.8rem, 3vw, 1.5rem); font-weight: 800; font-variant-numeric: tabular-nums; }
+    .lane-name {
+      order: 1; padding-top: 0.45rem; border-top: 2px solid rgba(255, 255, 255, 0.35);
+      font-size: clamp(0.7rem, 2.6vw, 1.1rem); font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .lane.done:not([data-rank]) { opacity: 0.35; }
+    .lane[data-rank] .lane-medal { transform: scale(1); }
+    .lane[data-rank="1"] .lane-bar { background: linear-gradient(#ffe066, #d4a017); box-shadow: 0 0 30px rgba(255, 213, 74, 0.75); }
+    .lane[data-rank="2"] .lane-bar { background: linear-gradient(#f4f6fa, #9aa3b5); box-shadow: 0 0 22px rgba(220, 225, 240, 0.5); }
+    .lane[data-rank="3"] .lane-bar { background: linear-gradient(#f1b47a, #b5652b); box-shadow: 0 0 22px rgba(241, 180, 122, 0.5); }
+    .lane[data-rank="1"] :is(.lane-name, .lane-count) { color: #ffe58a; }
+    .lane[data-rank="1"] .lane-medal { animation: glow 1.4s ease-in-out 0.6s infinite alternate; }
+    @keyframes glow { from { filter: drop-shadow(0 0 4px #ffd54a); transform: scale(1); } to { filter: drop-shadow(0 0 22px #ffd54a); transform: scale(1.12); } }
+    #ceremony-note { min-height: 1.5em; margin: 1rem 0 0.6rem; opacity: 0.8; }
+    .ceremony-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center; }
+    .ceremony-actions button { border-color: rgba(255, 255, 255, 0.4); background: rgba(255, 255, 255, 0.12); }
+    .ceremony-actions button:hover { background: rgba(255, 255, 255, 0.22); }
+    #ceremony :focus-visible { outline: 2px solid #ffe58a; outline-offset: 3px; }
+    @media (prefers-reduced-motion: reduce) {
+      .spotlights::before, .spotlights::after, #announcer.rolling, .lane[data-rank="1"] .lane-medal { animation: none; }
+      .lane-medal { transition: none; }
+    }
   </style>
 </head>
 <body>
@@ -60,6 +140,13 @@
     </section>
 
     <p id="reset-status" role="status"></p>
+    <section id="reveal" class="card" aria-label="결과 보기" hidden>
+      <p id="turnout"></p>
+      <div class="reveal-actions">
+        <button id="show-results" type="button">🎉 결과 확인</button>
+        <button id="toggle-dashboard" type="button" aria-controls="dashboard" aria-expanded="false">한번에 결과 확인</button>
+      </div>
+    </section>
     <section id="dashboard" class="card" aria-label="투표 집계" hidden>
       <dl>
         <div><dt>팀 수</dt><dd id="team-count"></dd></div>
@@ -75,6 +162,22 @@
       </table>
     </section>
   </main>
+
+  <dialog id="ceremony" aria-labelledby="ceremony-title">
+    <div class="spotlights" aria-hidden="true"></div>
+    <canvas id="confetti" aria-hidden="true"></canvas>
+    <div class="stage">
+      <h2 id="ceremony-title">🏆 투표 결과 발표 🏆</h2>
+      <p id="announcer" aria-live="assertive"></p>
+      <ol id="race" aria-label="팀별 개표"></ol>
+      <p id="ceremony-note"></p>
+      <div class="ceremony-actions">
+        <button id="sound-toggle" type="button" aria-pressed="true">🔊 소리 켜짐</button>
+        <button id="replay" type="button" disabled>다시 보기</button>
+        <button id="close-ceremony" type="button">닫기</button>
+      </div>
+    </div>
+  </dialog>
 
   <script type="module">
     const firebaseConfig = {
@@ -115,7 +218,20 @@
     const reset = document.querySelector("#reset");
     const resetStatus = document.querySelector("#reset-status");
     const number = new Intl.NumberFormat("ko-KR");
+    const reveal = document.querySelector("#reveal");
+    const turnout = document.querySelector("#turnout");
+    const toggleDashboard = document.querySelector("#toggle-dashboard");
+    const showResults = document.querySelector("#show-results");
+    const ceremony = document.querySelector("#ceremony");
+    const announcer = document.querySelector("#announcer");
+    const race = document.querySelector("#race");
+    const ceremonyNote = document.querySelector("#ceremony-note");
+    const soundToggle = document.querySelector("#sound-toggle");
+    const replay = document.querySelector("#replay");
+    const confettiCanvas = document.querySelector("#confetti");
 
+    let latestResults = null;
+    let dashboardOpen = false;
     let stopBallots;
     let stopRound;
     let requestVersion = 0;
@@ -129,8 +245,13 @@
     }
 
     function updateResetButton() {
-      reset.hidden = !resetConnection || dashboard.hidden;
+      reset.hidden = !resetConnection || !latestResults;
       reset.disabled = resetting || activeRound === undefined;
+      reveal.hidden = !latestResults;
+      dashboard.hidden = !latestResults || !dashboardOpen;
+      showResults.disabled = !latestResults?.ballots;
+      toggleDashboard.textContent = dashboardOpen ? "결과 숨기기" : "한번에 결과 확인";
+      toggleDashboard.setAttribute("aria-expanded", String(dashboardOpen));
     }
 
     function showStatus(message, error = false) {
@@ -140,13 +261,14 @@
     }
 
     function clearDashboard() {
-      dashboard.hidden = true;
+      turnout.textContent = "";
       teamCount.textContent = "";
       ballotCount.textContent = "";
       selectionCount.textContent = "";
       tally.replaceChildren();
       chart.replaceChildren();
       leaders.textContent = "";
+      latestResults = null;
       updateResetButton();
     }
 
@@ -208,7 +330,10 @@
       teamCount.textContent = number.format(teams.size);
       ballotCount.textContent = number.format(ballots);
       selectionCount.textContent = number.format(selections);
-      dashboard.hidden = false;
+      latestResults = { counts, ballots, selections };
+      const people = document.createElement("strong");
+      people.textContent = number.format(ballots);
+      turnout.replaceChildren("지금까지 ", people, "명이 투표했습니다.");
       updateResetButton();
       showStatus("");
     }
@@ -298,6 +423,325 @@
         updateResetButton();
       }
     });
+
+    /* ---------- 결과 발표 ---------- */
+    const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
+    const medals = { 1: "🥇", 2: "🥈", 3: "🥉" };
+    let ceremonyRun = 0;
+    let soundOn = true;
+
+    // 팀 순서(가~차)대로 막대를 세워 두고, 순위가 미리 드러나지 않게 한다.
+    function buildRace(entries) {
+      return entries.map(entry => {
+        const element = document.createElement("li");
+        element.className = "lane";
+        const name = document.createElement("span");
+        name.className = "lane-name";
+        name.textContent = entry.name;
+        const track = document.createElement("div");
+        track.className = "lane-track";
+        const area = document.createElement("div");
+        area.className = "lane-area";
+        const bar = document.createElement("div");
+        bar.className = "lane-bar";
+        const head = document.createElement("div");
+        head.className = "lane-head";
+        const medal = document.createElement("span");
+        medal.className = "lane-medal";
+        medal.setAttribute("aria-hidden", "true");
+        const count = document.createElement("span");
+        count.className = "lane-count";
+        count.textContent = "0";
+        head.append(medal, count);
+        area.append(bar, head);
+        track.append(area);
+        element.append(name, track);
+        return {
+          ...entry, element, head, medal,
+          set(level, max) {
+            element.style.setProperty("--level", String(level / max));
+            count.textContent = number.format(level);
+          }
+        };
+      });
+    }
+
+    // --- 소리 (Web Audio로 직접 합성, 외부 파일 없음) ---
+    let audio;
+    let noise;
+    function audioContext() {
+      if (!soundOn) return null;
+      try {
+        audio ??= new (window.AudioContext || window.webkitAudioContext)();
+        if (audio.state === "suspended") audio.resume();
+        if (!noise) {
+          noise = audio.createBuffer(1, audio.sampleRate, audio.sampleRate);
+          const samples = noise.getChannelData(0);
+          for (let i = 0; i < samples.length; i += 1) samples[i] = Math.random() * 2 - 1;
+        }
+        return audio;
+      } catch {
+        return null;
+      }
+    }
+
+    function noiseHit(ctx, start, duration, gain, filterType, frequency) {
+      const source = ctx.createBufferSource();
+      const filter = ctx.createBiquadFilter();
+      const volume = ctx.createGain();
+      source.buffer = noise;
+      filter.type = filterType;
+      filter.frequency.value = frequency;
+      volume.gain.setValueAtTime(gain, start);
+      volume.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+      source.connect(filter).connect(volume).connect(ctx.destination);
+      source.start(start);
+      source.stop(start + duration + 0.02);
+    }
+
+    function tone(ctx, frequency, start, duration, type = "sawtooth", gain = 0.12) {
+      const oscillator = ctx.createOscillator();
+      const filter = ctx.createBiquadFilter();
+      const volume = ctx.createGain();
+      oscillator.type = type;
+      oscillator.frequency.value = frequency;
+      filter.type = "lowpass";
+      filter.frequency.value = 2600;
+      volume.gain.setValueAtTime(0.0001, start);
+      volume.gain.exponentialRampToValueAtTime(gain, start + 0.025);
+      volume.gain.setValueAtTime(gain, start + duration * 0.75);
+      volume.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+      oscillator.connect(filter).connect(volume).connect(ctx.destination);
+      oscillator.start(start);
+      oscillator.stop(start + duration + 0.05);
+    }
+
+    function playDrumroll(seconds) {
+      const ctx = audioContext();
+      if (!ctx) return;
+      const start = ctx.currentTime + 0.02;
+      for (let time = 0; time < seconds; time += 0.042) {
+        noiseHit(ctx, start + time, 0.07, 0.04 + 0.22 * (time / seconds), "bandpass", 1700);
+      }
+    }
+
+    function playTick(progress) {
+      const ctx = audioContext();
+      if (!ctx) return;
+      tone(ctx, 330 + 550 * progress, ctx.currentTime + 0.01, 0.07, "square", 0.04);
+    }
+
+    function playBoom() {
+      const ctx = audioContext();
+      if (!ctx) return;
+      const start = ctx.currentTime + 0.02;
+      noiseHit(ctx, start, 0.5, 0.9, "lowpass", 160);
+      tone(ctx, 65, start, 0.5, "sine", 0.5);
+    }
+
+    function playFanfare() {
+      const ctx = audioContext();
+      if (!ctx) return;
+      const start = ctx.currentTime + 0.03;
+      noiseHit(ctx, start, 2.2, 0.35, "highpass", 5000); // 심벌
+      const notes = [
+        [392, 0, 0.13], [392, 0.15, 0.13], [392, 0.3, 0.13], [523.25, 0.45, 0.55],
+        [466.16, 1.02, 0.16], [523.25, 1.2, 0.16], [659.25, 1.38, 1.5]
+      ];
+      for (const [frequency, offset, duration] of notes) {
+        tone(ctx, frequency, start + offset, duration);
+        tone(ctx, frequency / 2, start + offset, duration, "square", 0.05);
+      }
+      tone(ctx, 523.25, start + 1.38, 1.5, "sawtooth", 0.08);
+      tone(ctx, 783.99, start + 1.38, 1.5, "sawtooth", 0.07);
+    }
+
+    // --- 꽃가루 ---
+    const paint = confettiCanvas.getContext("2d");
+    const confettiColors = ["#ffd54a", "#ff7a45", "#4fd1a5", "#5b8def", "#ff5fa2", "#ffffff", "#b388ff"];
+    let particles = [];
+    let rainUntil = 0;
+    let confettiFrame = 0;
+
+    function sizeCanvas() {
+      const ratio = devicePixelRatio || 1;
+      confettiCanvas.width = innerWidth * ratio;
+      confettiCanvas.height = innerHeight * ratio;
+      paint.setTransform(ratio, 0, 0, ratio, 0, 0);
+    }
+
+    function particle(x, y, vx, vy) {
+      return {
+        x, y, vx, vy,
+        width: 6 + Math.random() * 6, height: 9 + Math.random() * 8,
+        angle: Math.random() * Math.PI, spin: (Math.random() - 0.5) * 0.3,
+        flutter: Math.random() * Math.PI * 2,
+        color: confettiColors[Math.floor(Math.random() * confettiColors.length)]
+      };
+    }
+
+    function burst(x, y, amount, power = 1) {
+      for (let i = 0; i < amount; i += 1) {
+        const direction = -Math.PI / 2 + (Math.random() - 0.5) * 1.9;
+        const speed = (7 + Math.random() * 11) * power;
+        particles.push(particle(x, y, Math.cos(direction) * speed, Math.sin(direction) * speed));
+      }
+      startConfetti();
+    }
+
+    function rain(ms) {
+      rainUntil = performance.now() + ms;
+      startConfetti();
+    }
+
+    function startConfetti() {
+      if (!confettiFrame) confettiFrame = requestAnimationFrame(drawConfetti);
+    }
+
+    function stopConfetti() {
+      cancelAnimationFrame(confettiFrame);
+      confettiFrame = 0;
+      particles = [];
+      rainUntil = 0;
+      paint.clearRect(0, 0, innerWidth, innerHeight);
+    }
+
+    function drawConfetti(now) {
+      if (now < rainUntil) {
+        for (let i = 0; i < 4; i += 1) {
+          particles.push(particle(Math.random() * innerWidth, -20, (Math.random() - 0.5) * 2, 2 + Math.random() * 3));
+        }
+      }
+      paint.clearRect(0, 0, innerWidth, innerHeight);
+      particles = particles.filter(piece => piece.y < innerHeight + 30);
+      for (const piece of particles) {
+        piece.vx *= 0.985;
+        piece.vy = Math.min(piece.vy * 0.985 + 0.28, 6);
+        piece.flutter += 0.12;
+        piece.x += piece.vx + Math.sin(piece.flutter) * 0.8;
+        piece.y += piece.vy;
+        piece.angle += piece.spin;
+        paint.save();
+        paint.translate(piece.x, piece.y);
+        paint.rotate(piece.angle);
+        paint.scale(1, Math.cos(piece.flutter));
+        paint.fillStyle = piece.color;
+        paint.fillRect(-piece.width / 2, -piece.height / 2, piece.width, piece.height);
+        paint.restore();
+      }
+      confettiFrame = particles.length || now < rainUntil ? requestAnimationFrame(drawConfetti) : 0;
+    }
+
+    function burstFrom(element, amount, power) {
+      const box = element.getBoundingClientRect();
+      burst(box.left + box.width / 2, box.top + box.height / 3, amount, power);
+    }
+
+    // --- 개표: 모든 막대가 0표부터 1표씩 올라가고, 득표수에 닿은 막대는 멈춘다.
+    //     낮은 표의 막대가 먼저 멈추므로 3위 → 2위 → 1위 순서로 확정된다. 동점은 같은 순위.
+    async function runCeremony() {
+      if (!latestResults?.ballots) return;
+      const run = ++ceremonyRun;
+      const still = () => run === ceremonyRun && ceremony.open;
+      const entries = [...teams].map(([id, name]) => ({ name, votes: latestResults.counts.get(id) }));
+      const max = Math.max(...entries.map(entry => entry.votes));
+      const rankOf = votes => 1 + entries.filter(entry => entry.votes > votes).length;
+      const lanes = buildRace(entries);
+      const baseStep = Math.min(650, Math.max(110, 7000 / max));
+      let finalStep = 0;
+
+      stopConfetti();
+      sizeCanvas();
+      race.style.setProperty("--lanes", String(lanes.length));
+      race.replaceChildren(...lanes.map(lane => lane.element));
+      ceremonyNote.textContent = "";
+      replay.disabled = true;
+
+      announcer.textContent = "두구두구… 개표를 시작합니다!";
+      announcer.classList.add("rolling");
+      playDrumroll(1.6);
+      await wait(1800);
+      if (!still()) return;
+      announcer.classList.remove("rolling");
+      announcer.textContent = "개표 중…";
+      lanes.filter(lane => lane.votes === 0).forEach(lane => lane.element.classList.add("done"));
+
+      for (let level = 1; level <= max; level += 1) {
+        const rising = lanes.filter(lane => lane.votes >= level);
+        const onlyLeadersLeft = rising.every(lane => lane.votes === max);
+        if (!finalStep && onlyLeadersLeft && lanes.some(lane => lane.votes > 0 && lane.votes < max)) {
+          announcer.textContent = "그리고 대망의 1위는…!";
+          announcer.classList.add("rolling");
+          await wait(900);
+          if (!still()) return;
+          const remaining = max - level + 1;
+          finalStep = Math.min(700, Math.max(baseStep, 2400 / remaining));
+          playDrumroll((remaining * finalStep) / 1000 + 0.2);
+        }
+        const step = finalStep || baseStep;
+        race.style.setProperty("--step", step + "ms");
+        for (const lane of rising) lane.set(level, max);
+        playTick(level / max);
+        await wait(step);
+        if (!still()) return;
+
+        const stopped = rising.filter(lane => lane.votes === level);
+        if (!stopped.length) continue;
+        stopped.forEach(lane => lane.element.classList.add("done"));
+        const rank = rankOf(level);
+        if (rank > 3) continue;
+
+        stopped.forEach(lane => {
+          lane.element.dataset.rank = String(rank);
+          lane.medal.textContent = medals[rank];
+        });
+        const label = (stopped.length > 1 ? "공동 " : "") + rank + "위 · " + stopped.map(lane => lane.name).join(", ");
+        announcer.classList.remove("rolling");
+        if (rank === 1) {
+          announcer.textContent = "🎉 " + label + " 🎉";
+          playFanfare();
+          await wait(350);
+          if (!still()) return;
+          stopped.forEach(lane => burstFrom(lane.head, 20 + 110 / stopped.length, 1.2));
+          burst(0, innerHeight * 0.8, 60, 1.1);
+          burst(innerWidth, innerHeight * 0.8, 60, 1.1);
+          rain(4500);
+        } else {
+          announcer.textContent = medals[rank] + " " + label;
+          playBoom();
+          stopped.forEach(lane => burstFrom(lane.head, 40, 0.8));
+          await wait(1600);
+          if (!still()) return;
+          announcer.textContent = "개표 중…";
+        }
+      }
+
+      ceremonyNote.textContent = "제출된 투표지 " + number.format(latestResults.ballots)
+        + "장 · 총 " + number.format(latestResults.selections) + "표";
+      replay.disabled = false;
+    }
+
+    showResults.addEventListener("click", () => {
+      if (!latestResults?.ballots) return;
+      ceremony.showModal();
+      runCeremony();
+    });
+    toggleDashboard.addEventListener("click", () => {
+      dashboardOpen = !dashboardOpen;
+      updateResetButton();
+    });
+    replay.addEventListener("click", runCeremony);
+    document.querySelector("#close-ceremony").addEventListener("click", () => ceremony.close());
+    ceremony.addEventListener("close", () => {
+      ceremonyRun += 1;
+      stopConfetti();
+    });
+    soundToggle.addEventListener("click", () => {
+      soundOn = !soundOn;
+      soundToggle.setAttribute("aria-pressed", String(soundOn));
+      soundToggle.textContent = soundOn ? "🔊 소리 켜짐" : "🔇 소리 꺼짐";
+    });
+    addEventListener("resize", () => { if (ceremony.open) sizeCanvas(); });
 
     document.querySelector("#make-key").addEventListener("click", () => {
       const accessKey = "~" + randomId();
