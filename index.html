@@ -103,7 +103,9 @@
       ["ja", "자 팀"], ["cha", "차 팀"]
     ]);
     const maxSelections = 2;
-    const ballotsPath = "anonymousTeamVote/v1/ballots";
+    const votePath = "anonymousTeamVote/v1";
+    const ballotsPath = votePath + "/ballots";
+    const roundPath = votePath + "/control/round";
     const sdkBase = "https://www.gstatic.com/firebasejs/10.12.0/";
 
     const form = document.querySelector("#ballot-form");
@@ -117,6 +119,9 @@
     const inputs = new Map();
 
     let connection;
+    let stopRound;
+    let roundLoad = 0;
+    let activeRound;
     let savedBallot = null;
     let editing = true;
     let pending = false;
@@ -165,7 +170,12 @@
     }
 
     async function connect() {
+      stopRound?.();
+      roundLoad += 1;
+      activeRound = undefined;
+      connection = undefined;
       retry.hidden = true;
+      updateControls();
       showStatus("투표 서버에 연결하는 중입니다.");
 
       try {
@@ -181,15 +191,45 @@
         const user = auth.currentUser?.isAnonymous
           ? auth.currentUser
           : (await authSdk.signInAnonymously(auth)).user;
-        const ballotRef = dbSdk.ref(dbSdk.getDatabase(app), ballotsPath + "/" + user.uid);
-        const snapshot = await dbSdk.get(ballotRef);
+        const database = dbSdk.getDatabase(app);
+        const ballotRef = dbSdk.ref(database, ballotsPath + "/" + user.uid);
+        stopRound = dbSdk.onValue(dbSdk.ref(database, roundPath), async roundSnapshot => {
+          const round = roundSnapshot.val();
+          if (round === activeRound) return;
+          const newRound = activeRound !== undefined;
+          activeRound = round;
+          const load = ++roundLoad;
+          connection = undefined;
+          pending = false;
+          savedBallot = null;
+          editing = true;
+          for (const input of inputs.values()) input.checked = false;
+          updateControls();
+          showStatus("투표 상태를 불러오는 중입니다.");
 
-        connection = { ballotRef, get: dbSdk.get, runTransaction: dbSdk.runTransaction };
-        if (snapshot.exists()) {
-          showBallot(snapshot.val());
-        } else {
-          showStatus("");
-        }
+          try {
+            const snapshot = await dbSdk.get(ballotRef);
+            if (load !== roundLoad) return;
+            connection = { ballotRef, round, get: dbSdk.get, runTransaction: dbSdk.runTransaction };
+            if (snapshot.exists()) {
+              showBallot(snapshot.val());
+            } else {
+              showStatus(newRound ? "투표가 초기화됐습니다. 팀을 선택해 주세요." : "");
+              updateControls();
+            }
+          } catch {
+            if (load !== roundLoad) return;
+            activeRound = undefined;
+            retry.hidden = false;
+            showStatus("투표 상태를 불러오지 못했습니다.", true);
+          }
+        }, () => {
+          roundLoad += 1;
+          connection = undefined;
+          retry.hidden = false;
+          updateControls();
+          showStatus("투표 회차를 불러오지 못했습니다.", true);
+        });
       } catch (error) {
         const disabledAuth = error.code === "auth/operation-not-allowed" || error.code === "auth/admin-restricted-operation";
         showStatus(disabledAuth ? "익명 투표가 아직 활성화되지 않았습니다." : "투표 서버에 연결하지 못했습니다.", true);
@@ -218,20 +258,25 @@
       updateControls();
       showStatus("투표를 제출하는 중입니다.");
 
+      const session = connection;
       const ballot = second ? { first, second } : { first };
+      if (session.round !== null) ballot.round = session.round;
       try {
-        const result = await connection.runTransaction(
-          connection.ballotRef,
+        const result = await session.runTransaction(
+          session.ballotRef,
           () => ballot,
           { applyLocally: false }
         );
+        if (connection !== session) return;
         if (result.snapshot.exists()) {
           showBallot(result.snapshot.val());
         } else {
           showStatus("투표가 저장되지 않았습니다. 다시 시도해 주세요.", true);
         }
       } catch {
-        const existing = await connection.get(connection.ballotRef).catch(() => null);
+        if (connection !== session) return;
+        const existing = await session.get(session.ballotRef).catch(() => null);
+        if (connection !== session) return;
         if (existing?.exists()) {
           const stored = existing.val();
           const matches = stored.first === ballot.first && stored.second === ballot.second;
@@ -244,8 +289,10 @@
           showStatus("투표가 저장됐는지 확인하지 못했습니다. 다시 시도해 주세요.", true);
         }
       } finally {
-        pending = false;
-        updateControls();
+        if (connection === session) {
+          pending = false;
+          updateControls();
+        }
       }
     });
 
