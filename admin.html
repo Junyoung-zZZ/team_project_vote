@@ -27,12 +27,23 @@
     th, td { padding: 0.45rem 0.3rem; border-bottom: 1px solid #e2e0d8; text-align: left; }
     th:last-child, td:last-child { text-align: right; font-variant-numeric: tabular-nums; }
     tbody tr:last-child :is(th, td) { border-bottom: 0; }
+    #leaders { padding: 0.75rem; margin: 0 0 0.8rem; border-inline-start: 4px solid #2d5a3d; background: #edf4ef; font-weight: 700; }
+    #vote-chart { list-style: none; margin: 0 0 1.5rem; padding: 0; display: grid; gap: 0.45rem; }
+    .chart-row { display: grid; grid-template-columns: minmax(3rem, auto) minmax(0, 1fr) 3rem; align-items: center; gap: 0.65rem; }
+    .chart-track { height: 0.7rem; background: #eeece6; border-radius: 1rem; overflow: hidden; }
+    .chart-fill { height: 100%; background: #75928a; }
+    .chart-row[data-leading="true"] .chart-fill { background: #2d5a3d; }
+    .chart-row[data-leading="true"] .chart-label { font-weight: 700; }
+    .chart-value { text-align: right; font-variant-numeric: tabular-nums; }
+    #reset { color: #8b2020; background: #fff; border-color: #8b2020; }
+    #reset-status:empty { display: none; }
   </style>
 </head>
 <body>
   <main>
     <header>
       <h1>팀 투표 관리자</h1>
+      <button id="reset" type="button" hidden>투표 초기화</button>
     </header>
     <section id="notice" class="card">
       <p id="status" role="status">Firebase에 연결하는 중입니다.</p>
@@ -48,12 +59,15 @@
       </details>
     </section>
 
+    <p id="reset-status" role="status"></p>
     <section id="dashboard" class="card" aria-label="투표 집계" hidden>
       <dl>
         <div><dt>팀 수</dt><dd id="team-count"></dd></div>
         <div><dt>제출된 투표지</dt><dd id="ballot-count"></dd></div>
         <div><dt>총 득표수</dt><dd id="selection-count"></dd></div>
       </dl>
+      <p id="leaders" aria-live="polite"></p>
+      <ul id="vote-chart" aria-label="팀별 득표수 그래프"></ul>
       <table>
         <caption>팀별 실시간 득표수</caption>
         <thead><tr><th scope="col">팀명</th><th scope="col">득표수</th></tr></thead>
@@ -79,7 +93,9 @@
       ["ja", "자 팀"], ["cha", "차 팀"]
     ]);
 
-    const ballotsPath = "anonymousTeamVote/v1/ballots";
+    const votePath = "anonymousTeamVote/v1";
+    const ballotsPath = votePath + "/ballots";
+    const roundPath = votePath + "/control/round";
     const sdk = "https://www.gstatic.com/firebasejs/10.12.0/";
     const keyPattern = /^~[a-f0-9]{48}$/;
     const notice = document.querySelector("#notice");
@@ -94,10 +110,28 @@
     const ballotCount = document.querySelector("#ballot-count");
     const selectionCount = document.querySelector("#selection-count");
     const tally = document.querySelector("#tally");
+    const leaders = document.querySelector("#leaders");
+    const chart = document.querySelector("#vote-chart");
+    const reset = document.querySelector("#reset");
+    const resetStatus = document.querySelector("#reset-status");
     const number = new Intl.NumberFormat("ko-KR");
 
     let stopBallots;
+    let stopRound;
     let requestVersion = 0;
+    let resetConnection;
+    let activeRound;
+    let resetting = false;
+
+    function randomId() {
+      const bytes = crypto.getRandomValues(new Uint8Array(24));
+      return Array.from(bytes, byte => byte.toString(16).padStart(2, "0")).join("");
+    }
+
+    function updateResetButton() {
+      reset.hidden = !resetConnection || dashboard.hidden;
+      reset.disabled = resetting || activeRound === undefined;
+    }
 
     function showStatus(message, error = false) {
       notice.hidden = !message && reconnect.hidden && setup.hidden;
@@ -111,6 +145,9 @@
       ballotCount.textContent = "";
       selectionCount.textContent = "";
       tally.replaceChildren();
+      chart.replaceChildren();
+      leaders.textContent = "";
+      updateResetButton();
     }
 
     function render(snapshot) {
@@ -125,6 +162,36 @@
         selections += picks.size;
         for (const id of picks) counts.set(id, counts.get(id) + 1);
       });
+
+      const ranked = [...teams].sort(([first], [second]) => counts.get(second) - counts.get(first));
+      const high = counts.get(ranked[0][0]);
+      const winners = high ? ranked.filter(([id]) => counts.get(id) === high) : [];
+      leaders.textContent = high
+        ? (winners.length === 1 ? "현재 1위  " : "공동 1위  ")
+          + winners.map(([, name]) => name).join(", ") + " · " + number.format(high) + "표"
+        : "아직 제출된 투표가 없습니다.";
+
+      chart.replaceChildren(...ranked.map(([id, name]) => {
+        const votes = counts.get(id);
+        const item = document.createElement("li");
+        item.className = "chart-row";
+        item.dataset.leading = String(high > 0 && votes === high);
+        const label = document.createElement("span");
+        label.className = "chart-label";
+        label.textContent = name;
+        const track = document.createElement("div");
+        track.className = "chart-track";
+        track.setAttribute("aria-hidden", "true");
+        const fill = document.createElement("div");
+        fill.className = "chart-fill";
+        fill.style.width = (high ? 100 * votes / high : 0) + "%";
+        const value = document.createElement("span");
+        value.className = "chart-value";
+        value.textContent = number.format(votes) + "표";
+        track.append(fill);
+        item.append(label, track, value);
+        return item;
+      }));
 
       const rows = [];
       for (const [id, name] of teams) {
@@ -142,13 +209,19 @@
       ballotCount.textContent = number.format(ballots);
       selectionCount.textContent = number.format(selections);
       dashboard.hidden = false;
+      updateResetButton();
       showStatus("");
     }
 
     async function connect() {
       const version = ++requestVersion;
       stopBallots?.();
+      stopRound?.();
       stopBallots = undefined;
+      stopRound = undefined;
+      activeRound = undefined;
+      resetConnection = undefined;
+      resetStatus.textContent = "";
       clearDashboard();
       reconnect.hidden = true;
       const accessKey = location.hash.slice(1);
@@ -167,7 +240,22 @@
         if (version !== requestVersion) return;
         const app = appSdk.getApps().find(candidate => candidate.name === "team-vote-admin")
           ?? appSdk.initializeApp(firebaseConfig, "team-vote-admin");
-        const path = dbSdk.ref(dbSdk.getDatabase(app), ballotsPath);
+        const database = dbSdk.getDatabase(app);
+        const path = dbSdk.ref(database, ballotsPath);
+        stopRound = dbSdk.onValue(dbSdk.ref(database, roundPath), snapshot => {
+          if (version !== requestVersion) return;
+          activeRound = snapshot.val();
+          updateResetButton();
+        }, () => {
+          if (version !== requestVersion) return;
+          activeRound = undefined;
+          updateResetButton();
+        });
+        dbSdk.get(dbSdk.ref(database, "voteResetKeys/" + accessKey)).then(permission => {
+          if (version !== requestVersion || permission.val() !== true) return;
+          resetConnection = { ref: dbSdk.ref(database, votePath), set: dbSdk.set, accessKey };
+          updateResetButton();
+        }).catch(() => {});
         // Anonymous Firebase Auth UIDs sort before the "~" access-key prefix.
         const ballotQuery = dbSdk.query(path, dbSdk.orderByKey(), dbSdk.endAt(accessKey));
         stopBallots = dbSdk.onValue(ballotQuery, snapshot => {
@@ -188,9 +276,31 @@
       }
     }
 
+    reset.addEventListener("click", async () => {
+      if (!resetConnection || resetting || activeRound === undefined) return;
+      if (!confirm("현재 투표를 모두 삭제합니다. 삭제된 투표는 복구할 수 없습니다. 초기화할까요?")) return;
+      const session = resetConnection;
+      const round = randomId();
+      const previousRound = activeRound ?? "legacy";
+      resetting = true;
+      updateResetButton();
+      resetStatus.textContent = "투표를 초기화하는 중입니다.";
+
+      try {
+        await session.set(session.ref, { control: { round, previousRound, proof: { [round]: session.accessKey } } });
+        if (resetConnection === session) resetStatus.textContent = "투표를 초기화했습니다.";
+      } catch {
+        if (resetConnection === session) {
+          resetStatus.textContent = "초기화하지 못했습니다. 권한과 최신 투표 상태를 확인한 뒤 다시 시도해 주세요.";
+        }
+      } finally {
+        resetting = false;
+        updateResetButton();
+      }
+    });
+
     document.querySelector("#make-key").addEventListener("click", () => {
-      const random = crypto.getRandomValues(new Uint8Array(24));
-      const accessKey = "~" + Array.from(random, byte => byte.toString(16).padStart(2, "0")).join("");
+      const accessKey = "~" + randomId();
       const url = new URL(location.href);
       url.hash = accessKey;
       key.textContent = accessKey;
