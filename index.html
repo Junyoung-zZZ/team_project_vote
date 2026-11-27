@@ -65,7 +65,7 @@
   <main>
     <header>
       <h1>팀 투표</h1>
-      <p>투표할 팀을 최대 2팀 선택해 주세요. 제출 후에는 변경할 수 없습니다.</p>
+      <p>투표할 팀을 최대 2팀 선택해 주세요. 제출한 뒤에도 선택을 바꿀 수 있습니다.</p>
     </header>
 
     <form id="ballot-form">
@@ -77,6 +77,7 @@
       <div class="footer">
         <output id="selection-count" aria-live="polite">0 / 2팀 선택</output>
         <button id="submit" type="submit" disabled>투표 제출</button>
+        <button id="revote" type="button" hidden>재투표하기</button>
         <button id="retry" type="button" hidden>다시 연결</button>
       </div>
       <p id="status" role="status">투표 서버에 연결하는 중입니다.</p>
@@ -110,12 +111,14 @@
     const teamList = document.querySelector("#teams");
     const count = document.querySelector("#selection-count");
     const submit = document.querySelector("#submit");
+    const revote = document.querySelector("#revote");
     const retry = document.querySelector("#retry");
     const status = document.querySelector("#status");
     const inputs = new Map();
 
     let connection;
-    let submitted = false;
+    let savedBallot = null;
+    let editing = true;
     let pending = false;
 
     for (const [id, labelText] of teams) {
@@ -135,10 +138,11 @@
 
     function updateControls() {
       const selection = selectedTeams();
-      const locked = !connection || pending || submitted;
+      const locked = !connection || pending || !editing;
       choices.disabled = locked;
       submit.disabled = locked || selection.length === 0 || selection.length > maxSelections;
-      submit.hidden = submitted;
+      submit.hidden = !editing;
+      revote.hidden = !savedBallot || editing;
       count.value = selection.length + " / " + maxSelections + "팀 선택";
 
       for (const [id, input] of inputs) {
@@ -151,11 +155,12 @@
       status.dataset.error = String(error);
     }
 
-    function showBallot(ballot) {
+    function showBallot(ballot, message = "투표가 완료됐습니다.", error = false) {
       const picks = [ballot.first, ballot.second].filter(id => teams.has(id));
       for (const [id, input] of inputs) input.checked = picks.includes(id);
-      submitted = true;
-      showStatus("투표가 완료됐습니다. 선택한 팀  " + picks.map(id => teams.get(id)).join(", "));
+      savedBallot = ballot;
+      editing = false;
+      showStatus(message + " 선택한 팀  " + picks.map(id => teams.get(id)).join(", "), error);
       updateControls();
     }
 
@@ -195,10 +200,17 @@
 
     choices.addEventListener("change", updateControls);
     retry.addEventListener("click", connect);
+    revote.addEventListener("click", () => {
+      if (!connection || pending || !savedBallot) return;
+      editing = true;
+      showStatus("새로 제출하면 이전 선택이 바뀝니다.");
+      updateControls();
+      [...inputs.values()].find(input => input.checked)?.focus();
+    });
 
     form.addEventListener("submit", async event => {
       event.preventDefault();
-      if (!connection || pending || submitted) return;
+      if (!connection || pending || !editing) return;
       const [first, second, extra] = selectedTeams();
       if (!first || extra) return;
 
@@ -206,11 +218,11 @@
       updateControls();
       showStatus("투표를 제출하는 중입니다.");
 
+      const ballot = second ? { first, second } : { first };
       try {
-        const ballot = second ? { first, second } : { first };
         const result = await connection.runTransaction(
           connection.ballotRef,
-          existing => existing === null ? ballot : undefined,
+          () => ballot,
           { applyLocally: false }
         );
         if (result.snapshot.exists()) {
@@ -221,7 +233,13 @@
       } catch {
         const existing = await connection.get(connection.ballotRef).catch(() => null);
         if (existing?.exists()) {
-          showBallot(existing.val());
+          const stored = existing.val();
+          const matches = stored.first === ballot.first && stored.second === ballot.second;
+          if (matches) {
+            showBallot(stored);
+          } else {
+            showBallot(stored, "변경사항을 저장하지 못했습니다. 기존 표가 유지됩니다.", true);
+          }
         } else {
           showStatus("투표가 저장됐는지 확인하지 못했습니다. 다시 시도해 주세요.", true);
         }

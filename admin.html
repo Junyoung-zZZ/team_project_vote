@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>팀 투표 관리자</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; padding: clamp(1rem, 5vw, 3rem); background: #f5f4f0; color: #1a1917; font: 1rem/1.55 system-ui, sans-serif; }
+    main { max-width: 720px; margin: 0 auto; }
+    h1 { margin: 0 0 1rem; font-size: clamp(1.7rem, 5vw, 2.4rem); }
+    [hidden] { display: none !important; }
+    header { display: flex; justify-content: space-between; align-items: start; gap: 1rem; flex-wrap: wrap; }
+    .card { padding: clamp(1rem, 4vw, 1.5rem); margin-bottom: 1rem; background: #fff; border: 1px solid #e2e0d8; border-radius: 14px; }
+    button { padding: 0.55rem 0.9rem; border: 1px solid #2d5a3d; border-radius: 8px; color: #fff; background: #2d5a3d; font: inherit; font-weight: 650; cursor: pointer; }
+    button:disabled { opacity: 0.6; cursor: default; }
+    #status { margin: 0 0 0.7rem; }
+    #status[data-error="true"] { color: #8b2020; }
+    #status:empty { margin: 0; }
+    #key-info { overflow-wrap: anywhere; }
+    dl { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.6rem; margin: 0 0 1.4rem; }
+    dl div { padding: 0.7rem; border-radius: 8px; background: #edf4ef; }
+    dt { font-size: 0.85rem; }
+    dd { margin: 0; font-size: 1.35rem; font-weight: 700; }
+    table { width: 100%; border-collapse: collapse; }
+    caption { padding: 0 0 0.55rem; text-align: left; font-weight: 700; }
+    th, td { padding: 0.45rem 0.3rem; border-bottom: 1px solid #e2e0d8; text-align: left; }
+    th:last-child, td:last-child { text-align: right; font-variant-numeric: tabular-nums; }
+    tbody tr:last-child :is(th, td) { border-bottom: 0; }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>팀 투표 관리자</h1>
+    </header>
+    <section id="notice" class="card">
+      <p id="status" role="status">Firebase에 연결하는 중입니다.</p>
+      <button id="reconnect" type="button" hidden>다시 연결</button>
+      <details id="setup" hidden>
+        <summary>관리자 링크 처음 만들기</summary>
+        <p><button id="make-key" type="button">접근 키 만들기</button></p>
+        <div id="key-info" hidden>
+          <p>Firebase Data의 <code>voteAdminKeys</code> 아래에 이 키를 추가하고 값을 불리언 <code>true</code>로 저장하세요.</p>
+          <p><code id="key"></code></p>
+          <p><a id="admin-link"></a></p>
+        </div>
+      </details>
+    </section>
+
+    <section id="dashboard" class="card" aria-label="투표 집계" hidden>
+      <dl>
+        <div><dt>팀 수</dt><dd id="team-count"></dd></div>
+        <div><dt>제출된 투표지</dt><dd id="ballot-count"></dd></div>
+        <div><dt>총 득표수</dt><dd id="selection-count"></dd></div>
+      </dl>
+      <table>
+        <caption>팀별 실시간 득표수</caption>
+        <thead><tr><th scope="col">팀명</th><th scope="col">득표수</th></tr></thead>
+        <tbody id="tally"></tbody>
+      </table>
+    </section>
+  </main>
+
+  <script type="module">
+    const firebaseConfig = {
+      apiKey: "AIzaSyBjnxtIvqa2Dodggaw3se7TzdF97yYad5E",
+      authDomain: "teamvote-34e70.firebaseapp.com",
+      databaseURL: "https://teamvote-34e70-default-rtdb.firebaseio.com",
+      projectId: "teamvote-34e70",
+      storageBucket: "teamvote-34e70.firebasestorage.app",
+      messagingSenderId: "638362284614",
+      appId: "1:638362284614:web:3285e18d3349f5e0fc1047",
+      measurementId: "G-93GXDH57XT"
+    };
+    const teams = new Map([
+      ["ga", "가 팀"], ["na", "나 팀"], ["da", "다 팀"], ["ra", "라 팀"],
+      ["ma", "마 팀"], ["ba", "바 팀"], ["sa", "사 팀"], ["a", "아 팀"],
+      ["ja", "자 팀"], ["cha", "차 팀"]
+    ]);
+
+    const ballotsPath = "anonymousTeamVote/v1/ballots";
+    const sdk = "https://www.gstatic.com/firebasejs/10.12.0/";
+    const keyPattern = /^~[a-f0-9]{48}$/;
+    const notice = document.querySelector("#notice");
+    const status = document.querySelector("#status");
+    const reconnect = document.querySelector("#reconnect");
+    const setup = document.querySelector("#setup");
+    const keyInfo = document.querySelector("#key-info");
+    const key = document.querySelector("#key");
+    const adminLink = document.querySelector("#admin-link");
+    const dashboard = document.querySelector("#dashboard");
+    const teamCount = document.querySelector("#team-count");
+    const ballotCount = document.querySelector("#ballot-count");
+    const selectionCount = document.querySelector("#selection-count");
+    const tally = document.querySelector("#tally");
+    const number = new Intl.NumberFormat("ko-KR");
+
+    let stopBallots;
+    let requestVersion = 0;
+
+    function showStatus(message, error = false) {
+      notice.hidden = !message && reconnect.hidden && setup.hidden;
+      status.textContent = message;
+      status.dataset.error = String(error);
+    }
+
+    function clearDashboard() {
+      dashboard.hidden = true;
+      teamCount.textContent = "";
+      ballotCount.textContent = "";
+      selectionCount.textContent = "";
+      tally.replaceChildren();
+    }
+
+    function render(snapshot) {
+      const counts = new Map([...teams.keys()].map(id => [id, 0]));
+      let ballots = 0;
+      let selections = 0;
+      snapshot.forEach(child => {
+        const vote = child.val();
+        const picks = new Set([vote?.first, vote?.second].filter(id => teams.has(id)));
+        if (!picks.size) return;
+        ballots += 1;
+        selections += picks.size;
+        for (const id of picks) counts.set(id, counts.get(id) + 1);
+      });
+
+      const rows = [];
+      for (const [id, name] of teams) {
+        const row = document.createElement("tr");
+        const label = document.createElement("th");
+        label.scope = "row";
+        label.textContent = name;
+        const votes = document.createElement("td");
+        votes.textContent = number.format(counts.get(id));
+        row.append(label, votes);
+        rows.push(row);
+      }
+      tally.replaceChildren(...rows);
+      teamCount.textContent = number.format(teams.size);
+      ballotCount.textContent = number.format(ballots);
+      selectionCount.textContent = number.format(selections);
+      dashboard.hidden = false;
+      showStatus("");
+    }
+
+    async function connect() {
+      const version = ++requestVersion;
+      stopBallots?.();
+      stopBallots = undefined;
+      clearDashboard();
+      reconnect.hidden = true;
+      const accessKey = location.hash.slice(1);
+      setup.hidden = Boolean(accessKey);
+      if (!keyPattern.test(accessKey)) {
+        showStatus(accessKey ? "관리자 링크 형식을 확인해 주세요." : "관리자 링크를 열어 주세요.", Boolean(accessKey));
+        return;
+      }
+
+      showStatus("투표 현황을 불러오는 중입니다.");
+      try {
+        const [appSdk, dbSdk] = await Promise.all([
+          import(sdk + "firebase-app.js"),
+          import(sdk + "firebase-database.js")
+        ]);
+        if (version !== requestVersion) return;
+        const app = appSdk.getApps().find(candidate => candidate.name === "team-vote-admin")
+          ?? appSdk.initializeApp(firebaseConfig, "team-vote-admin");
+        const path = dbSdk.ref(dbSdk.getDatabase(app), ballotsPath);
+        // Anonymous Firebase Auth UIDs sort before the "~" access-key prefix.
+        const ballotQuery = dbSdk.query(path, dbSdk.orderByKey(), dbSdk.endAt(accessKey));
+        stopBallots = dbSdk.onValue(ballotQuery, snapshot => {
+          if (version !== requestVersion) return;
+          reconnect.hidden = true;
+          render(snapshot);
+        }, error => {
+          if (version !== requestVersion) return;
+          clearDashboard();
+          reconnect.hidden = false;
+          const denied = (error.code || "").toLowerCase() === "permission_denied";
+          showStatus(denied ? "허용되지 않은 관리자 링크입니다. Firebase의 접근 키를 확인해 주세요." : "투표 현황을 불러오지 못했습니다.", true);
+        });
+      } catch {
+        if (version !== requestVersion) return;
+        reconnect.hidden = false;
+        showStatus("Firebase에 연결하지 못했습니다.", true);
+      }
+    }
+
+    document.querySelector("#make-key").addEventListener("click", () => {
+      const random = crypto.getRandomValues(new Uint8Array(24));
+      const accessKey = "~" + Array.from(random, byte => byte.toString(16).padStart(2, "0")).join("");
+      const url = new URL(location.href);
+      url.hash = accessKey;
+      key.textContent = accessKey;
+      adminLink.href = url.href;
+      adminLink.textContent = url.href;
+      keyInfo.hidden = false;
+    });
+    reconnect.addEventListener("click", connect);
+    addEventListener("hashchange", connect);
+    connect();
+  </script>
+</body>
+</html>
