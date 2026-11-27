@@ -1,556 +1,237 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>조 배정 신청</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>팀 투표</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --bg: #f5f4f0;
-      --surface: #ffffff;
-      --border: #e2e0d8;
-      --border-strong: #c8c5b8;
-      --text: #1a1917;
-      --text-sub: #6b6860;
-      --text-hint: #a8a49a;
-      --accent: #2d5a3d;
-      --accent-light: #edf4ef;
-      --accent-border: #b8d4bf;
-      --danger: #8b2020;
-      --danger-light: #fdf0f0;
-      --danger-border: #e8c0c0;
-      --warn: #7a4f00;
-      --warn-light: #fdf8ee;
-      --warn-border: #e8d5a0;
-      --radius: 10px;
-      --radius-lg: 14px;
-      --info: #1a3d6b;
-      --info-light: #eef3fa;
-      --info-border: #b8cce4;
-    }
-
+    *, *::before, *::after { box-sizing: border-box; }
     body {
-      font-family: 'Noto Sans KR', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
+      margin: 0;
+      padding: clamp(1rem, 5vw, 3rem);
+      background: #f5f4f0;
+      color: #1a1917;
+      font: 1rem/1.55 'Noto Sans KR', sans-serif;
+    }
+    main { max-width: 680px; margin: 0 auto; }
+    h1 { margin: 0.4rem 0 0.35rem; font-size: clamp(1.8rem, 5vw, 2.4rem); }
+    header p { margin: 0 0 1.5rem; color: #59564e; }
+    form {
+      padding: clamp(1rem, 4vw, 1.75rem);
+      background: #fff;
+      border: 1px solid #e2e0d8;
+      border-radius: 14px;
+    }
+    fieldset { min-inline-size: 0; padding: 0; margin: 0; border: 0; }
+    legend { padding: 0; margin-bottom: 0.75rem; font-weight: 700; }
+    #teams { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.65rem; }
+    label {
       display: flex;
-      align-items: flex-start;
-      justify-content: center;
-      padding: 2rem 1rem 4rem;
+      align-items: center;
+      gap: 0.55rem;
+      min-height: 3.2rem;
+      padding: 0.55rem 0.75rem;
+      border: 1px solid #d7d4ca;
+      border-radius: 10px;
+      cursor: pointer;
     }
-
-    .container { width: 100%; max-width: 680px; }
-
-    .header { text-align: center; margin-bottom: 2.5rem; padding-top: 1rem; }
-    .header h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; color: var(--text); }
-    .header p { font-size: 14px; color: var(--text-sub); margin-top: 6px; }
-    .header-dot { display: inline-block; width: 8px; height: 8px; background: var(--accent); border-radius: 50%; margin-bottom: 12px; }
-
-    .page { display: none; }
-    .page.active { display: block; }
-
-    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 2rem; }
-
-    .field { margin-bottom: 1.25rem; }
-    .field label { display: block; font-size: 12px; font-weight: 500; color: var(--text-sub); letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 8px; }
-    .field input {
-      width: 100%; height: 44px; padding: 0 14px;
-      font-family: 'Noto Sans KR', sans-serif; font-size: 15px; color: var(--text);
-      background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius);
-      outline: none; transition: border-color 0.15s, background 0.15s;
+    label:has(input:checked) { border-color: #2d5a3d; background: #edf4ef; }
+    label:has(input:disabled) { cursor: default; }
+    label:has(input:disabled:not(:checked)) { color: #59564e; background: #f7f6f2; }
+    input { width: 1.05rem; height: 1.05rem; margin: 0; accent-color: #2d5a3d; }
+    .footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.65rem; margin-top: 1.25rem; }
+    output { color: #59564e; }
+    button {
+      padding: 0.6rem 1rem;
+      border: 1px solid #2d5a3d;
+      border-radius: 10px;
+      background: #2d5a3d;
+      color: #fff;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
     }
-    .field input:focus { border-color: var(--accent); background: #fff; }
-    .field input::placeholder { color: var(--text-hint); }
-
-    .btn-primary {
-      width: 100%; height: 48px; margin-top: 0.5rem;
-      background: var(--accent); color: #fff; border: none; border-radius: var(--radius);
-      font-family: 'Noto Sans KR', sans-serif; font-size: 15px; font-weight: 500;
-      cursor: pointer; transition: opacity 0.15s, transform 0.1s;
-    }
-    .btn-primary:hover:not(:disabled) { opacity: 0.88; }
-    .btn-primary:active:not(:disabled) { transform: scale(0.99); }
-    .btn-primary:disabled { opacity: 0.3; cursor: not-allowed; }
-
-    /* ── Page 2 toolbar ── */
-    .toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 10px; }
-
-    .user-chip {
-      display: inline-flex; align-items: center; gap: 8px;
-      background: var(--surface); border: 1px solid var(--border); border-radius: 99px;
-      padding: 6px 14px 6px 8px; font-size: 13px; color: var(--text-sub);
-    }
-    .user-chip-avatar {
-      width: 26px; height: 26px; border-radius: 50%;
-      background: var(--accent-light); border: 1px solid var(--accent-border);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 11px; font-weight: 700; color: var(--accent);
-    }
-    .user-chip strong { color: var(--text); font-weight: 500; }
-
-    .toolbar-right { display: flex; align-items: center; gap: 8px; }
-
-    .btn-leave-all {
-      display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px;
-      padding: 7px 13px;
-      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
-      font-family: 'Noto Sans KR', sans-serif; font-size: 13px; color: var(--text-sub);
-      cursor: pointer; transition: background 0.12s;
-    }
-    .btn-edit:hover { background: #dde8f5; }
-    .btn-leave-all:hover { background: #f9e0e0; }
-    .btn-leave-all.hidden { display: none; }
-
-    .refresh-btn {
-      display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px;
-      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
-      font-family: 'Noto Sans KR', sans-serif; font-size: 13px; color: var(--text-sub);
-      cursor: pointer; transition: background 0.12s;
-    }
-    .refresh-btn:hover { background: var(--bg); }
-    .refresh-icon { display: inline-block; transition: transform 0.6s; }
-    .refresh-icon.spin { transform: rotate(360deg); }
-
-    /* ── Groups grid ── */
-    .groups-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
-    @media (max-width: 480px) { .groups-grid { grid-template-columns: 1fr; } }
-
-    .group-card {
-      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
-      padding: 1.25rem; cursor: pointer;
-      transition: border-color 0.15s, background 0.15s, transform 0.1s;
-      position: relative; user-select: none;
-    }
-    .group-card:hover:not(.full):not(.joined) { border-color: var(--border-strong); transform: translateY(-1px); }
-    .group-card:active:not(.full):not(.joined) { transform: translateY(0); }
-    .group-card.joined { border: 1.5px solid var(--accent-border); background: var(--accent-light); }
-    .group-card.full:not(.joined) { opacity: 0.5; cursor: not-allowed; }
-
-    .badge {
-      position: absolute; top: 10px; right: 10px;
-      font-size: 10px; font-weight: 700; letter-spacing: 0.04em;
-      padding: 3px 9px; border-radius: 99px;
-    }
-    .badge-joined { background: var(--accent-light); color: var(--accent); border: 1px solid var(--accent-border); }
-    .badge-full { background: var(--danger-light); color: var(--danger); border: 1px solid var(--danger-border); }
-
-    .group-name { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 2px; letter-spacing: -0.3px; }
-    .group-desc { font-size: 12px; color: var(--text-sub); margin-bottom: 12px; }
-
-    .count-row { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
-    .count-bar-track { flex: 1; height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
-    .count-bar-fill { height: 100%; border-radius: 2px; background: var(--text-hint); transition: width 0.4s ease; }
-    .group-card.joined .count-bar-fill { background: var(--accent); }
-    .group-card.full:not(.joined) .count-bar-fill { background: var(--danger); }
-    .count-text { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text-sub); white-space: nowrap; }
-
-    .divider { height: 1px; background: var(--border); margin-bottom: 10px; }
-    .group-card.joined .divider { background: var(--accent-border); }
-
-    .members-list { display: flex; flex-direction: column; gap: 5px; }
-    .member-row { display: flex; align-items: center; gap: 7px; }
-    .member-avatar {
-      width: 22px; height: 22px; border-radius: 50%;
-      background: var(--bg); border: 1px solid var(--border);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 9px; font-weight: 700; color: var(--text-sub); flex-shrink: 0;
-    }
-    .group-card.joined .member-avatar { background: #fff; border-color: var(--accent-border); }
-    .member-avatar.me { background: var(--accent); border-color: var(--accent); color: #fff; }
-    .member-info { display: flex; align-items: baseline; gap: 4px; overflow: hidden; }
-    .member-name { font-size: 12px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .member-org { font-size: 11px; color: var(--text-hint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .empty-hint { font-size: 12px; color: var(--text-hint); padding: 2px 0; }
-
-    /* ── Status / notice ── */
-    .status-bar {
-      margin-top: 1.5rem; padding: 12px 16px;
-      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
-      font-size: 13px; color: var(--text-sub); text-align: center;
-      transition: background 0.2s, border-color 0.2s, color 0.2s;
-    }
-    .status-bar.ok { background: var(--accent-light); border-color: var(--accent-border); color: var(--accent); }
-    .status-bar.err { background: var(--danger-light); border-color: var(--danger-border); color: var(--danger); }
-
-    /* 재접속 안내 배너 */
-    .restore-banner {
-      display: none; align-items: center; justify-content: space-between; gap: 10px;
-      background: var(--warn-light); border: 1px solid var(--warn-border); border-radius: var(--radius);
-      padding: 12px 16px; margin-bottom: 1.5rem; font-size: 13px; color: var(--warn);
-      flex-wrap: wrap;
-    }
-    .restore-banner.show { display: flex; }
-    .restore-banner strong { font-weight: 600; }
-    .restore-banner-btns { display: flex; gap: 8px; flex-shrink: 0; }
-    .btn-restore {
-      padding: 6px 14px; border-radius: var(--radius);
-      font-family: 'Noto Sans KR', sans-serif; font-size: 12px; font-weight: 500;
-      cursor: pointer; border: 1px solid var(--warn-border);
-    }
-    .btn-restore.yes { background: var(--warn); color: #fff; border-color: var(--warn); }
-    .btn-restore.yes:hover { opacity: 0.88; }
-    .btn-restore.no { background: transparent; color: var(--warn); }
-    .btn-restore.no:hover { background: var(--warn-border); }
-
-    /* 로딩 */
-    .loading-overlay {
-      display: none; position: fixed; inset: 0;
-      background: rgba(245,244,240,0.8); align-items: center; justify-content: center;
-      font-size: 14px; color: var(--text-sub); z-index: 100;
-    }
-    .loading-overlay.active { display: flex; }
-    .spinner { width: 20px; height: 20px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; margin-right: 10px; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    /* 확인 모달 */
-    .modal-backdrop {
-      display: none; position: fixed; inset: 0;
-      background: rgba(0,0,0,0.35); z-index: 200; align-items: center; justify-content: center;
-    }
-    .modal-backdrop.active { display: flex; }
-    .modal {
-      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
-      padding: 1.75rem; width: 320px; max-width: 90vw; text-align: center;
-    }
-    .modal h3 { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
-    .modal p { font-size: 13px; color: var(--text-sub); margin-bottom: 1.5rem; line-height: 1.6; }
-    .modal-btns { display: flex; gap: 8px; }
-    .modal-btns button {
-      flex: 1; height: 42px; border-radius: var(--radius); border: 1px solid var(--border);
-      font-family: 'Noto Sans KR', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer;
-    }
-    .modal-btns .btn-confirm { background: var(--danger); color: #fff; border-color: var(--danger); }
-    .modal-btns .btn-confirm:hover { opacity: 0.88; }
-    .modal-btns .btn-cancel { background: transparent; color: var(--text-sub); }
-    .modal-btns .btn-cancel:hover { background: var(--bg); }
+    button:disabled { border-color: #e2e0d8; background: #eeece6; color: #59564e; cursor: default; }
+    #retry { background: #fff; color: #2d5a3d; }
+    [hidden] { display: none !important; }
+    :focus-visible { outline: 2px solid #2d5a3d; outline-offset: 3px; }
+    #status { margin: 0.85rem 0 0; color: #2d5a3d; font-size: 0.9rem; }
+    #status[data-error="true"] { color: #8b2020; }
   </style>
 </head>
 <body>
+  <main>
+    <header>
+      <h1>팀 투표</h1>
+      <p>투표할 팀을 최대 2팀 선택해 주세요. 제출 후에는 변경할 수 없습니다.</p>
+    </header>
 
-<div class="loading-overlay" id="loading-overlay">
-  <div class="spinner"></div> 잠시만요...
-</div>
+    <form id="ballot-form">
+      <fieldset id="choices" disabled>
+        <legend>팀 선택</legend>
+        <div id="teams"></div>
+      </fieldset>
 
-<!-- 나가기 확인 모달 -->
-<div class="modal-backdrop" id="modal-backdrop">
-  <div class="modal">
-    <h3>조에서 나가시겠어요?</h3>
-    <p>나가면 해당 자리가 빠지며<br>다른 사람이 들어올 수 있습니다.</p>
-    <div class="modal-btns">
-      <button class="btn-cancel" id="modal-cancel">취소</button>
-      <button class="btn-confirm" id="modal-confirm">나가기</button>
-    </div>
-  </div>
-</div>
-
-<div class="container">
-  <div class="header">
-    <div class="header-dot"></div>
-    <h1>조 배정 신청</h1>
-    <p>원하는 조를 선택해 주세요. 정원 초과 시 신청이 마감됩니다.</p>
-  </div>
-
-  <!-- Page 1 -->
-  <div id="page1" class="page active">
-    <div class="card">
-      <div class="field">
-        <label>이름</label>
-        <input id="inp-name" type="text" placeholder="홍길동" autocomplete="off" />
+      <div class="footer">
+        <output id="selection-count" aria-live="polite">0 / 2팀 선택</output>
+        <button id="submit" type="submit" disabled>투표 제출</button>
+        <button id="retry" type="button" hidden>다시 연결</button>
       </div>
-      <div class="field">
-        <label>소속</label>
-        <input id="inp-org" type="text" placeholder="소속 학교 / 부서 / 기관" autocomplete="off" />
-      </div>
-      <button class="btn-primary" id="btn-next" disabled>다음으로 →</button>
-    </div>
-  </div>
+      <p id="status" role="status">투표 서버에 연결하는 중입니다.</p>
+      <noscript>투표하려면 브라우저에서 JavaScript를 켜 주세요.</noscript>
+    </form>
+  </main>
 
-  <!-- Page 2 -->
-  <div id="page2" class="page">
+  <script type="module">
+    const firebaseConfig = {
+      apiKey: "AIzaSyBjnxtIvqa2Dodggaw3se7TzdF97yYad5E",
+      authDomain: "teamvote-34e70.firebaseapp.com",
+      databaseURL: "https://teamvote-34e70-default-rtdb.firebaseio.com",
+      projectId: "teamvote-34e70",
+      storageBucket: "teamvote-34e70.firebasestorage.app",
+      messagingSenderId: "638362284614",
+      appId: "1:638362284614:web:3285e18d3349f5e0fc1047",
+      measurementId: "G-93GXDH57XT"
+    };
 
+    const teams = new Map([
+      ["ga", "가 팀"], ["na", "나 팀"], ["da", "다 팀"], ["ra", "라 팀"],
+      ["ma", "마 팀"], ["ba", "바 팀"], ["sa", "사 팀"], ["a", "아 팀"],
+      ["ja", "자 팀"], ["cha", "차 팀"]
+    ]);
+    const maxSelections = 2;
+    const ballotsPath = "anonymousTeamVote/v1/ballots";
+    const sdkBase = "https://www.gstatic.com/firebasejs/10.12.0/";
 
-    <div class="toolbar">
-      <div class="user-chip">
-        <div class="user-chip-avatar" id="chip-avatar"></div>
-        <span><strong id="display-name"></strong>&nbsp;·&nbsp;<span id="display-org"></span></span>
-      </div>
-      <div class="toolbar-right">
-        <button class="btn-edit" id="btn-edit">✎ 정보 수정</button>  <!-- 추가 -->
-        <button class="btn-leave-all hidden" id="btn-leave-all">조 나가기</button>
-        <button class="refresh-btn" id="btn-refresh">
-          <span class="refresh-icon" id="refresh-icon">↻</span> 새로고침
-        </button>
-      </div>
-    </div>
+    const form = document.querySelector("#ballot-form");
+    const choices = document.querySelector("#choices");
+    const teamList = document.querySelector("#teams");
+    const count = document.querySelector("#selection-count");
+    const submit = document.querySelector("#submit");
+    const retry = document.querySelector("#retry");
+    const status = document.querySelector("#status");
+    const inputs = new Map();
 
-    <div class="groups-grid" id="groups-grid"></div>
-    <div class="status-bar" id="status-bar">조를 선택해 주세요.</div>
-  </div>
-</div>
+    let connection;
+    let submitted = false;
+    let pending = false;
 
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getDatabase, ref, onValue, runTransaction, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+    for (const [id, labelText] of teams) {
+      const input = document.createElement("input");
+      input.type = "checkbox";
+      input.value = id;
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyBjnxtIvqa2Dodggaw3se7TzdF97yYad5E",
-    authDomain: "teamvote-34e70.firebaseapp.com",
-    databaseURL: "https://teamvote-34e70-default-rtdb.firebaseio.com",
-    projectId: "teamvote-34e70",
-    storageBucket: "teamvote-34e70.firebasestorage.app",
-    messagingSenderId: "638362284614",
-    appId: "1:638362284614:web:3285e18d3349f5e0fc1047",
-    measurementId: "G-93GXDH57XT"
-  };
+      const label = document.createElement("label");
+      label.append(input, labelText);
+      teamList.append(label);
+      inputs.set(id, input);
+    }
 
-  const GROUPS = [
-  { key: 'g1', name: '1조', desc: '주제: 100일 백신 개발 목표는 충분할까? - 전파력별 방역·백신 개입 전략 분석', max: 5 },
-  { key: 'g2', name: '2조', desc: '주제: 지역별 호흡기 감염병 전파양상 비교 분석', max: 5 },
-  { key: 'g3', name: '3조', desc: '주제: 통계모델을 이용한 계절성 감염병의 향후 예측', max: 5 },
-  { key: 'g4', name: '4조', desc: '주제: 신변종 감염병이 나타난다면 우리는 얼마나 빨리 사회적 거리두기를 시행해야 할까?', max: 5 },
-  { key: 'g5', name: '5조', desc: '주제: 같은 50% 접촉 감소, 누구에게 적용해야 가장 효과적일까?', max: 5 },
-  { key: 'g6', name: '6조', desc: '주제: 인플루엔자와 같은 다양한 호흡기 감염병이 유행할 때, 의료병상 개수는 얼마나 준비해야하는가?', max: 5 },
-  ];
+    function selectedTeams() {
+      return [...inputs].filter(([, input]) => input.checked).map(([id]) => id);
+    }
 
-  const LS_KEY = 'group_app_user';
+    function updateControls() {
+      const selection = selectedTeams();
+      const locked = !connection || pending || submitted;
+      choices.disabled = locked;
+      submit.disabled = locked || selection.length === 0 || selection.length > maxSelections;
+      submit.hidden = submitted;
+      count.value = selection.length + " / " + maxSelections + "팀 선택";
 
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
-  const dbRef = ref(db, 'groups');
-
-  let currentUser = null;
-  let groupData = {};
-  let pendingLeaveKey = null;
-
-  // ── localStorage 헬퍼 ──
-  function saveUserLocally(user) {
-    localStorage.setItem(LS_KEY, JSON.stringify(user));
-  }
-  function loadUserLocally() {
-    try { return JSON.parse(localStorage.getItem(LS_KEY)); } catch { return null; }
-  }
-  function clearUserLocally() {
-    localStorage.removeItem(LS_KEY);
-  }
-
-  function showLoading(v) {
-    document.getElementById('loading-overlay').classList.toggle('active', v);
-  }
-
-  function initials(name) {
-    return name ? name.slice(0, 2) : '?';
-  }
-
-  function userKey(u) {
-    return (u.name + '_' + u.org).replace(/[.#$[\]/]/g, '_');
-  }
-
-  function findUserGroup() {
-    if (!currentUser) return null;
-    for (const g of GROUPS) {
-      const members = groupData[g.key] || {};
-      for (const uid in members) {
-        const m = members[uid];
-        if (m.name === currentUser.name && m.org === currentUser.org) return g.key;
+      for (const [id, input] of inputs) {
+        input.disabled = selection.length >= maxSelections && !selection.includes(id);
       }
     }
-    return null;
-  }
 
-  function setStatus(msg, type) {
-    const bar = document.getElementById('status-bar');
-    bar.textContent = msg;
-    bar.className = 'status-bar' + (type ? ' ' + type : '');
-  }
+    function showStatus(message, error = false) {
+      status.textContent = message;
+      status.dataset.error = String(error);
+    }
 
-  function updateLeaveBtn() {
-    const btn = document.getElementById('btn-leave-all');
-    const inGroup = !!findUserGroup();
-    btn.classList.toggle('hidden', !inGroup);
-  }
+    function showBallot(ballot) {
+      const picks = [ballot.first, ballot.second].filter(id => teams.has(id));
+      for (const [id, input] of inputs) input.checked = picks.includes(id);
+      submitted = true;
+      showStatus("투표가 완료됐습니다. 선택한 팀  " + picks.map(id => teams.get(id)).join(", "));
+      updateControls();
+    }
 
-  function renderGroups() {
-    const grid = document.getElementById('groups-grid');
-    const userGroup = findUserGroup();
-    grid.innerHTML = '';
+    async function connect() {
+      retry.hidden = true;
+      showStatus("투표 서버에 연결하는 중입니다.");
 
-    GROUPS.forEach(g => {
-      const members = groupData[g.key] || {};
-      const memberList = Object.values(members);
-      const count = memberList.length;
-      const isFull = count >= g.max;
-      const isJoined = userGroup === g.key;
-      const pct = Math.round((count / g.max) * 100);
+      try {
+        const [appSdk, authSdk, dbSdk] = await Promise.all([
+          import(sdkBase + "firebase-app.js"),
+          import(sdkBase + "firebase-auth.js"),
+          import(sdkBase + "firebase-database.js")
+        ]);
+        const app = appSdk.getApps().length ? appSdk.getApp() : appSdk.initializeApp(firebaseConfig);
+        const auth = authSdk.getAuth(app);
+        await auth.authStateReady();
+        await authSdk.setPersistence(auth, authSdk.browserLocalPersistence);
+        const user = auth.currentUser?.isAnonymous
+          ? auth.currentUser
+          : (await authSdk.signInAnonymously(auth)).user;
+        const ballotRef = dbSdk.ref(dbSdk.getDatabase(app), ballotsPath + "/" + user.uid);
+        const snapshot = await dbSdk.get(ballotRef);
 
-      const card = document.createElement('div');
-      card.className = 'group-card' + (isJoined ? ' joined' : isFull ? ' full' : '');
-
-      let membersHTML = '';
-      if (memberList.length === 0) {
-        membersHTML = '<p class="empty-hint">아직 없음</p>';
-      } else {
-        membersHTML = memberList.map(m => {
-          const isMe = currentUser && m.name === currentUser.name && m.org === currentUser.org;
-          return `<div class="member-row">
-            <div class="member-avatar ${isMe ? 'me' : ''}">${initials(m.name)}</div>
-            <div class="member-info">
-              <span class="member-name">${m.name}</span>
-              <span class="member-org">(${m.org})</span>
-            </div>
-          </div>`;
-        }).join('');
+        connection = { ballotRef, get: dbSdk.get, runTransaction: dbSdk.runTransaction };
+        if (snapshot.exists()) {
+          showBallot(snapshot.val());
+        } else {
+          showStatus("");
+        }
+      } catch (error) {
+        const disabledAuth = error.code === "auth/operation-not-allowed" || error.code === "auth/admin-restricted-operation";
+        showStatus(disabledAuth ? "익명 투표가 아직 활성화되지 않았습니다." : "투표 서버에 연결하지 못했습니다.", true);
+        retry.hidden = false;
       }
+      updateControls();
+    }
 
-      card.innerHTML = `
-        ${isJoined ? '<span class="badge badge-joined">내 조 ✓</span>' : isFull ? '<span class="badge badge-full">마감</span>' : ''}
-        <div class="group-name">${g.name}</div>
-        <div class="group-desc">${g.desc}</div>
-        <div class="count-row">
-          <div class="count-bar-track"><div class="count-bar-fill" style="width:${pct}%"></div></div>
-          <span class="count-text">${count} / ${g.max}</span>
-        </div>
-        <div class="divider"></div>
-        <div class="members-list">${membersHTML}</div>
-      `;
+    choices.addEventListener("change", updateControls);
+    retry.addEventListener("click", connect);
 
-      if (!isFull && !isJoined) {
-        card.addEventListener('click', () => joinGroup(g.key));
+    form.addEventListener("submit", async event => {
+      event.preventDefault();
+      if (!connection || pending || submitted) return;
+      const [first, second, extra] = selectedTeams();
+      if (!first || extra) return;
+
+      pending = true;
+      updateControls();
+      showStatus("투표를 제출하는 중입니다.");
+
+      try {
+        const ballot = second ? { first, second } : { first };
+        const result = await connection.runTransaction(
+          connection.ballotRef,
+          existing => existing === null ? ballot : undefined,
+          { applyLocally: false }
+        );
+        if (result.snapshot.exists()) {
+          showBallot(result.snapshot.val());
+        } else {
+          showStatus("투표가 저장되지 않았습니다. 다시 시도해 주세요.", true);
+        }
+      } catch {
+        const existing = await connection.get(connection.ballotRef).catch(() => null);
+        if (existing?.exists()) {
+          showBallot(existing.val());
+        } else {
+          showStatus("투표가 저장됐는지 확인하지 못했습니다. 다시 시도해 주세요.", true);
+        }
+      } finally {
+        pending = false;
+        updateControls();
       }
-      // 조 카드 클릭으로 나가기 제거 — 나가기 버튼으로만 가능
-      grid.appendChild(card);
     });
 
-    updateLeaveBtn();
-  }
-
-  async function joinGroup(key) {
-    const g = GROUPS.find(g => g.key === key);
-    showLoading(true);
-    try {
-      const prevGroup = findUserGroup();
-      if (prevGroup) {
-        const prevRef = ref(db, `groups/${prevGroup}/${userKey(currentUser)}`);
-        await runTransaction(prevRef, () => null);
-      }
-      const targetRef = ref(db, `groups/${key}`);
-      const snap = await get(targetRef);
-      const current = snap.val() || {};
-      if (Object.keys(current).length >= g.max) {
-        setStatus('이미 정원이 초과되었습니다.', 'err');
-        showLoading(false);
-        return;
-      }
-      const memberRef = ref(db, `groups/${key}/${userKey(currentUser)}`);
-      await runTransaction(memberRef, () => ({ name: currentUser.name, org: currentUser.org }));
-      setStatus(`${g.name}에 참가했습니다!`, 'ok');
-    } catch(e) {
-      setStatus('오류가 발생했습니다. 다시 시도해 주세요.', 'err');
-    }
-    showLoading(false);
-  }
-
-  async function leaveGroup(key) {
-    showLoading(true);
-    try {
-      const memberRef = ref(db, `groups/${key}/${userKey(currentUser)}`);
-      await runTransaction(memberRef, () => null);
-      setStatus('조에서 나왔습니다. 다시 선택할 수 있습니다.', '');
-    } catch(e) {
-      setStatus('오류가 발생했습니다.', 'err');
-    }
-    showLoading(false);
-  }
-
-  // ── 나가기 버튼 (모달 경유) ──
-  document.getElementById('btn-leave-all').addEventListener('click', () => {
-    const ug = findUserGroup();
-    if (!ug) return;
-    pendingLeaveKey = ug;
-    document.getElementById('modal-backdrop').classList.add('active');
-  });
-  document.getElementById('modal-cancel').addEventListener('click', () => {
-    document.getElementById('modal-backdrop').classList.remove('active');
-    pendingLeaveKey = null;
-  });
-  document.getElementById('modal-confirm').addEventListener('click', async () => {
-    document.getElementById('modal-backdrop').classList.remove('active');
-    if (pendingLeaveKey) {
-      await leaveGroup(pendingLeaveKey);
-      pendingLeaveKey = null;
-    }
-  });
-  // ── 정보 수정 버튼 ──
-document.getElementById('btn-edit').addEventListener('click', () => {
-  clearUserLocally();
-  currentUser = null;
-  inpName.value = '';
-  inpOrg.value = '';
-  btnNext.disabled = true;
-  document.getElementById('page2').classList.remove('active');
-  document.getElementById('page1').classList.add('active');
-  setStatus('조를 선택해 주세요.', '');
-});
-  
-
-  // ── 실시간 리스너 ──
-  onValue(dbRef, (snap) => {
-    const val = snap.val() || {};
-    GROUPS.forEach(g => { groupData[g.key] = val[g.key] || {}; });
-    if (currentUser) renderGroups();
-  });
-
-  // ── 새로고침 버튼 ──
-  document.getElementById('btn-refresh').addEventListener('click', () => {
-    const icon = document.getElementById('refresh-icon');
-    icon.classList.add('spin');
-    setTimeout(() => icon.classList.remove('spin'), 700);
-  });
-
-  // ── Page 2 진입 ──
-  function enterPage2(user) {
-    currentUser = user;
-    saveUserLocally(user);
-    document.getElementById('display-name').textContent = user.name;
-    document.getElementById('display-org').textContent = user.org;
-    document.getElementById('chip-avatar').textContent = initials(user.name);
-    document.getElementById('page1').classList.remove('active');
-    document.getElementById('page2').classList.add('active');
-    renderGroups();
-  }
-
-
-  // ── 입력 검사 ──
-  const inpName = document.getElementById('inp-name');
-  const inpOrg = document.getElementById('inp-org');
-  const btnNext = document.getElementById('btn-next');
-
-  function checkInputs() {
-    btnNext.disabled = !(inpName.value.trim() && inpOrg.value.trim());
-  }
-  inpName.addEventListener('input', checkInputs);
-  inpOrg.addEventListener('input', checkInputs);
-  [inpName, inpOrg].forEach(el => {
-    el.addEventListener('keydown', e => { if (e.key === 'Enter') btnNext.click(); });
-  });
-
-  btnNext.addEventListener('click', () => {
-    const user = { name: inpName.value.trim(), org: inpOrg.value.trim() };
-    enterPage2(user);
-  });
-
-  // ── 재접속 자동 복원 ──
-  function checkReturningUser() {
-    const saved = loadUserLocally();
-    if (!saved) return;
-    enterPage2(saved);
-    setStatus(`${saved.name}님 환영합니다.`, 'ok');
-  }
-  checkReturningUser();
-</script>
+    connect();
+  </script>
 </body>
 </html>
